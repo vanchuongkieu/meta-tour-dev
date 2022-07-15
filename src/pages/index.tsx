@@ -102,7 +102,7 @@ const Home: NextPage = () => {
         ))}
         {/* <MetaTour.Scene {...panorams[0]} key={panorams[0]._id} /> */}
       </MetaTour>
-      {/* <div className="box">
+      <div className="box">
         <div>
           <div>
             <strong>HFOV: </strong> {hfov}
@@ -139,7 +139,7 @@ const Home: NextPage = () => {
             onChange={(e) => setYaw(Number(e.target.value))}
           />
         </div>
-      </div> */}
+      </div>
     </div>
   );
 };

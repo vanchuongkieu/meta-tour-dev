@@ -1848,6 +1848,8 @@ export default (function (window, document, undefined) {
         config.roll = (-q[1] / Math.PI) * 180;
         config.yaw = (-q[2] / Math.PI) * 180 + orientationYawOffset;
       }
+
+      fireEvent("vrmove", e);
     }
 
     /**
@@ -1995,13 +1997,13 @@ export default (function (window, document, undefined) {
       if (hs.transform.rotateZ) {
         var c_yaw = config.yaw;
         c_yaw -= Math.floor(c_yaw / 360 + 0.2) * 360;
-        var angle_pitch = (hs.pitch / 90) * 5;
+        var angle_pitch = (hs.pitch / 90) * 7;
         if (angle_pitch < 0) angle_pitch = angle_pitch * -1;
         var diff_yaw = -hs.yaw + c_yaw;
         diff_yaw -= Math.floor(diff_yaw / 360 + 0.2) * 360;
         var angle_yaw = -(diff_yaw * angle_pitch);
         transformMaker += ` rotateZ(${
-          hs.transform.rotateZ + angle_yaw + "deg"
+          parseInt(hs.transform.rotateZ) + angle_yaw + "deg"
         })`;
       }
       hotspotMaker.style = "--transform: " + transformMaker;
@@ -2811,7 +2813,6 @@ export default (function (window, document, undefined) {
       window.removeEventListener("deviceorientation", orientationListener);
       controls.orientation.classList.remove("pnlm-orientation-button-active");
       orientation = false;
-      config.draggable = true;
     }
 
     /**
@@ -2838,7 +2839,6 @@ export default (function (window, document, undefined) {
         window.addEventListener("deviceorientation", orientationListener);
         controls.orientation.classList.add("pnlm-orientation-button-active");
       }
-      config.draggable = false;
     }
 
     /**

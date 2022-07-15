@@ -90,6 +90,7 @@ class MetaTour extends React.PureComponent {
     myPanorama = this.panorama;
 
     this.panorama.on("load", () => this.onLoaded());
+    this.panorama.on("vrmove", () => this.onMouseMove());
     this.panorama.on("mousemove", () => this.onMouseMove());
     this.panorama.on("touchmove", () => this.onMouseMove());
     this.panorama.on("mousewheel", () => this.onMouseWheel());
@@ -114,6 +115,7 @@ class MetaTour extends React.PureComponent {
 
   componentWillUnmount() {
     this.panorama.off("load", () => this.onLoaded());
+    this.panorama.off("vrmove", () => this.onMouseMove());
     this.panorama.off("mousemove", () => this.onMouseMove());
     this.panorama.off("touchmove", () => this.onMouseMove());
     this.panorama.off("mousewheel", () => this.onMouseWheel());
