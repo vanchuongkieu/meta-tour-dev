@@ -162,10 +162,10 @@ class MetaTour extends React.PureComponent {
     const pitch = this.state.initialScene.pitch || 0;
     const hfov = this.state.initialScene.hfov || 120;
     const yaw = this.state.initialScene.yaw || 0;
+    this.onPosition({ pitch, hfov, yaw });
     this.panorama.setPitch(pitch);
     this.panorama.setHfov(hfov);
     this.panorama.setYaw(yaw);
-    this.onPosition({ pitch, hfov, yaw });
   }
 
   onPosition({ pitch, yaw, hfov }) {
@@ -206,6 +206,8 @@ class MetaTour extends React.PureComponent {
             className="control-bottom-item compass"
             style={{ "--transform-compass": this.state.compassTransform }}
             onClick={this.compassHandleClick}
+            onTouchStart={this.compassHandleClick}
+            onPointerDown={this.compassHandleClick}
           >
             <i className="fa-solid fa-compass"></i>
           </div>

@@ -87,22 +87,22 @@ const Home: NextPage = () => {
   return (
     <div>
       <MetaTour
+        yaw={yaw}
         hfov={hfov}
         pitch={pitch}
-        yaw={yaw}
+        onYaw={setYaw}
         onHfov={setHfov}
         onPitch={setPitch}
-        onYaw={setYaw}
-        onHotSpotClick={console.log}
-        onHotSpotDrag={console.log}
         onLoaded={console.log}
+        onHotSpotDrag={console.log}
+        onHotSpotClick={console.log}
       >
         {panorams.map((panoram) => (
           <MetaTour.Scene {...panoram} key={panoram._id} />
         ))}
         {/* <MetaTour.Scene {...panorams[0]} key={panorams[0]._id} /> */}
       </MetaTour>
-      <div className="box">
+      {/* <div className="box">
         <div>
           <div>
             <strong>HFOV: </strong> {hfov}
@@ -139,7 +139,7 @@ const Home: NextPage = () => {
             onChange={(e) => setYaw(Number(e.target.value))}
           />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
