@@ -241,7 +241,11 @@ class MetaTour extends React.PureComponent {
         <div id={container}></div>
         <div className="control-bottom-right">
           {scene && scene.compass && (
-            <div className="control-bottom-item compass" id="compass_icon">
+            <div
+              className="control-bottom-item compass"
+              onClick={this.compassHandleClick}
+              id="compass_icon"
+            >
               <i className="icon-compass"></i>
             </div>
           )}
