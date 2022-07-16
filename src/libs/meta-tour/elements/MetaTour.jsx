@@ -27,7 +27,7 @@ class MetaTour extends React.PureComponent {
 
   componentDidMount() {
     this.setState({
-      timeLoaded: new Date().getTime(),
+      timeStart: new Date().getTime(),
     });
     this.renderPanorama("mount");
     myPanorama.on("load", () => this.onLoad());
@@ -147,17 +147,40 @@ class MetaTour extends React.PureComponent {
 
   onLoad() {
     const sceneObj = myPanorama.getSceneObj(myPanorama.getScene());
+    const timeEnd = new Date().getTime();
+    const calcTime = timeEnd - this.state.timeStart;
+
+    let timeOut = 0;
+    if (calcTime > 5000) {
+      document.addEventListener("click", () =>
+        this.setState({ firstLoad: false })
+      );
+      timeOut = calcTime;
+    } else {
+      timeOut = 3000;
+    }
+
+    setTimeout(() => {
+      this.setState({
+        firstLoad: false,
+      });
+    }, timeOut);
+
+    let progressValue = 0;
+    let progressEndValue = 100;
+    let progress = setInterval(() => {
+      progressValue++;
+      this.setState({ percent: progressValue });
+      if (progressValue == progressEndValue) {
+        clearInterval(progress);
+      }
+    }, timeOut / 100 - 10);
+
     this.setState({
       scene: sceneObj,
       loading: false,
     });
-    const timeLoadDone = new Date().getTime();
-    const msTimeCalc = timeLoadDone - this.state.timeLoaded;
-    let msTimeOut = msTimeCalc;
-    if (msTimeCalc < 2000) msTimeOut = msTimeCalc + (2000 - msTimeCalc);
-    setTimeout(() => {
-      this.setState({ firstLoad: false });
-    }, msTimeCalc);
+
     if (this.props.onLoad) {
       this.props.onLoad({ id_room: myPanorama.getScene() });
       this.onCoordinates({
@@ -225,14 +248,23 @@ class MetaTour extends React.PureComponent {
   }
 
   render() {
-    const { scene, loading, firstLoad, container } = this.state;
+    const { scene, loading, firstLoad, container, percent } = this.state;
     return (
       <div className="mt-wrapper">
-        <div className="mt-loading" style={{ opacity: loading ? 0.8 : 0 }} />
+        {firstLoad && (
+          <div className="background-loading">{percent && percent + "%"}</div>
+        )}
+        <div
+          className="mt-loading"
+          style={{ opacity: !firstLoad && loading ? 1 : 0 }}
+        />
         <div
           id={container}
           className="mt-container"
-          style={{ opacity: firstLoad ? 0 : 1 }}
+          style={{
+            opacity: firstLoad ? 0 : 1,
+            pointerEvents: firstLoad ? "none" : "auto",
+          }}
         />
         <div className="control-bottom-right">
           {scene && scene.compass && !firstLoad && (
