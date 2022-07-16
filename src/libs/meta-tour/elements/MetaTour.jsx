@@ -22,16 +22,20 @@ class MetaTour extends React.PureComponent {
     hfov: 0,
     pitch: 0,
     draggable: false,
-    fadeDuration: 1000,
+    fadeDuration: 1500,
   };
 
   componentDidMount() {
+    this.setState({
+      timeLoaded: new Date().getTime(),
+    });
     this.renderPanorama("mount");
     myPanorama.on("load", () => this.onLoad());
     myPanorama.on("vrmove", () => this.onMove());
     myPanorama.on("mousemove", () => this.onMove());
     myPanorama.on("touchmove", () => this.onMove());
     myPanorama.on("mousewheel", () => this.onWheel());
+    myPanorama.on("loadscene", () => this.setState({ loading: true }));
   }
 
   componentDidUpdate(pp) {
@@ -70,19 +74,17 @@ class MetaTour extends React.PureComponent {
           __deep.dragHandlerArgs = __deep.dragArgs && __deep.dragArgs;
         }
 
-        let gotoArgs = [];
-        if (_current.lock) {
-          gotoArgs = [__deep.id_room, _current.pitch, _current.yaw, 500];
-        } else {
-          gotoArgs = [__deep.id_room, hotspot.pitch + 10, hotspot.yaw, 500];
-        }
-
         switch (__deep.type) {
           case "visit":
             return {
               ...__deep,
               clickHandlerFunc: this.goto,
-              clickHandlerArgs: gotoArgs,
+              clickHandlerArgs: [
+                __deep.id_room,
+                hotspot.pitch,
+                hotspot.yaw,
+                300,
+              ],
             };
           case "link":
           case "click":
@@ -149,11 +151,15 @@ class MetaTour extends React.PureComponent {
       scene: sceneObj,
       loading: false,
     });
+    const timeLoadDone = new Date().getTime();
+    const msTimeCalc = timeLoadDone - this.state.timeLoaded;
+    let msTimeOut = msTimeCalc;
+    if (msTimeCalc < 2000) msTimeOut = msTimeCalc + (2000 - msTimeCalc);
     setTimeout(() => {
       this.setState({ firstLoad: false });
-    }, 2000);
+    }, msTimeCalc);
     if (this.props.onLoad) {
-      this.props.onLoad({ sceneId: myPanorama.getScene() });
+      this.props.onLoad({ id_room: myPanorama.getScene() });
       this.onCoordinates({
         pitch: myPanorama.getPitch(),
         hfov: myPanorama.getHfov(),
@@ -207,37 +213,27 @@ class MetaTour extends React.PureComponent {
     if (onYaw && yaw) onYaw(yaw);
   }
 
-  static loadScene(sceneId, targetPitch, targetYaw, targetHfov, fadeDone) {
-    if (myPanorama && sceneId && sceneId !== "") {
-      myPanorama.loadScene(
-        sceneId,
-        targetPitch,
-        targetYaw,
-        targetHfov,
-        fadeDone
-      );
-    }
+  goto(_, [id_room, targetPitch, targetYaw, animated = 1000]) {
+    const targetHfov = myPanorama.getHfov();
+    myPanorama.lookAt(targetPitch, targetYaw, targetHfov - 30, animated, () => {
+      myPanorama.loadScene(id_room);
+    });
   }
 
-  goto(hs, [sceneId, pitch, yaw, animated = 1000]) {
-    const hfov = myPanorama.getHfov();
-    const calcHfov = hfov > 80 ? hfov - 30 : hfov;
-    myPanorama.lookAt(pitch, yaw, calcHfov, animated, () => {
-      this.setState({ loading: true });
-      myPanorama.loadScene(sceneId);
-    });
+  static loadScene(id_room, targetPitch, targetYaw, targetHfov) {
+    myPanorama.loadScene(id_room, targetPitch, targetYaw, targetHfov);
   }
 
   render() {
     const { scene, loading, firstLoad, container } = this.state;
     return (
-      <div className="meta-tour-wrapper">
+      <div className="mt-wrapper">
+        <div className="mt-loading" style={{ opacity: loading ? 0.8 : 0 }} />
         <div
-          id="loading_pano"
-          style={{ opacity: !firstLoad && loading ? 0.8 : 0 }}
-        ></div>
-        <div className="loading_start" style={{ opacity: firstLoad ? 1 : 0 }} />
-        <div id={container} style={{ opacity: firstLoad ? 0 : 0.8 }}></div>
+          id={container}
+          className="mt-container"
+          style={{ opacity: firstLoad ? 0 : 1 }}
+        />
         <div className="control-bottom-right">
           {scene && scene.compass && !firstLoad && (
             <div

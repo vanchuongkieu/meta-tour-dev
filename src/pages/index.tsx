@@ -1,4 +1,4 @@
-import { loadScene, MetaTour } from "@/libs/meta-tour";
+import { MetaTour } from "@/libs/meta-tour";
 import type { NextPage } from "next";
 import { useState } from "react";
 
@@ -79,16 +79,23 @@ const panorams = [
 ];
 
 const Home: NextPage = () => {
+  const [idRoom, setIdRoom] = useState<string>("");
   // const [hfov, setHfov] = useState<number>(120);
   // const [pitch, setPitch] = useState<number>(0);
   // const [yaw, setYaw] = useState<number>(0);
 
   return (
-    <MetaTour>
-      {panorams.map((panoram) => (
-        <MetaTour.Scene {...panoram} key={panoram._id} />
-      ))}
-    </MetaTour>
+    <div>
+      <MetaTour onLoad={({ id_room }) => setIdRoom(id_room)}>
+        {panorams.map((panoram) => (
+          <MetaTour.Scene {...panoram} key={panoram._id} />
+        ))}
+      </MetaTour>
+      {/* <div style={{ position: "absolute", top: 0, left: 0 }}>
+        <button onClick={() => MetaTour.loadScene("scene1")}>Room 1</button>
+        <button onClick={() => MetaTour.loadScene("scene2")}>Room 2</button>
+      </div> */}
+    </div>
     // <div>
     //   <MetaTour
     //     yaw={yaw}

@@ -161,7 +161,6 @@ export default (function (window, document, undefined) {
 
     // Loading ui
     infoDisplay.load = {};
-    infoDisplay.loadingPano = document.getElementById("loading_pano");
     infoDisplay.load.box = document.createElement("div");
     infoDisplay.load.box.className = "pnlm-load-box";
     infoDisplay.load.boxp = document.createElement("p");
@@ -1855,13 +1854,10 @@ export default (function (window, document, undefined) {
         }
       }
       if (hs.clickHandlerFunc) {
-        div.addEventListener(
-          "click",
-          function (e) {
-            hs.clickHandlerFunc(hs, hs.clickHandlerArgs);
-          },
-          "false"
-        );
+        function handleClicked() {
+          hs.clickHandlerFunc(hs, hs.clickHandlerArgs);
+        }
+        div.addEventListener("click", handleClicked, "false");
         div.className += " pnlm-pointer";
         span.className += " pnlm-pointer";
       }
@@ -2781,6 +2777,7 @@ export default (function (window, document, undefined) {
       speed = { yaw: 0, pitch: 0, hfov: 0 };
     };
     this.loadScene = function (sceneId, pitch, yaw, hfov) {
+      fireEvent("loadscene");
       if (loaded !== false) loadScene(sceneId, pitch, yaw, hfov);
       return this;
     };

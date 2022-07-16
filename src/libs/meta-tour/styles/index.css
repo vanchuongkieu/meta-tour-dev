@@ -5,7 +5,7 @@
   --button-button-hover: #ffffff;
 }
 
-.meta-tour-wrapper {
+.mt-wrapper {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -248,7 +248,7 @@
   font-size: 16px;
 }
 
-#loading_pano {
+.mt-loading {
   display: flex;
   font-size: 36px;
   position: absolute;
@@ -257,32 +257,19 @@
   color: white;
   z-index: 12;
   transform: translate(-50%, -50%);
-  width: 120px;
-  height: 120px;
+  width: 70px;
+  height: 70px;
   color: var(--main-color);
   pointer-events: none;
 }
 
-#loading_pano::after {
+.mt-loading::after {
   content: "";
-  background-image: url("../libraries/images/loading.svg");
+  background-image: url("../libraries/images/loading.webp");
   background-repeat: no-repeat;
   background-size: cover;
   width: 100%;
   height: 100%;
-}
-
-.loading_start {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  background-image: url("https://ap.poly.edu.vn/images/Banner-AP.png");
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-  object-fit: fill;
-  transition: all 250ms ease-in-out;
 }
 
 .box {
