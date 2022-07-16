@@ -1,6 +1,6 @@
 import { MetaTour } from "@/libs/meta-tour";
 import type { NextPage } from "next";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const panorams = [
   {
@@ -19,7 +19,6 @@ const panorams = [
         icon: "location-dot",
         transform: {},
         type: "visit",
-        buttonText: "visit",
         tooltip: "Man 1",
         id_room: "scene2",
         animation: "bounce",
@@ -66,6 +65,7 @@ const panorams = [
         _id: "hs4",
         pitch: -6.4,
         yaw: -7.6,
+        icon: "location-dot",
         type: "visit",
         tooltip: "Art Museum Drive",
         transform: {
@@ -80,13 +80,21 @@ const panorams = [
 
 const Home: NextPage = () => {
   const [idRoom, setIdRoom] = useState<string>("");
+  const [isLoading, setLoading] = useState<boolean>(true);
   // const [hfov, setHfov] = useState<number>(120);
   // const [pitch, setPitch] = useState<number>(0);
   // const [yaw, setYaw] = useState<number>(0);
 
+  useEffect(() => {
+    console.log(isLoading);
+  }, [isLoading]);
+
   return (
     <div>
-      <MetaTour onLoad={({ id_room }) => setIdRoom(id_room)}>
+      <MetaTour
+        isLoading={setLoading}
+        onLoad={({ id_room }) => setIdRoom(id_room)}
+      >
         {panorams.map((panoram) => (
           <MetaTour.Scene {...panoram} key={panoram._id} />
         ))}

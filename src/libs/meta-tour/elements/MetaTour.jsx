@@ -1,7 +1,6 @@
 import React from "react";
 import utils from "@/utils";
 import pannellum from "../libraries/pannellum";
-import Image from "next/image";
 
 let myPanorama;
 
@@ -9,6 +8,7 @@ class MetaTour extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {
+      percent: 0,
       loading: true,
       firstLoad: true,
       container: "meta-tour-container",
@@ -26,22 +26,26 @@ class MetaTour extends React.PureComponent {
   };
 
   componentDidMount() {
-    this.setState({
-      timeStart: new Date().getTime(),
-    });
     this.renderPanorama("mount");
     myPanorama.on("load", () => this.onLoad());
     myPanorama.on("vrmove", () => this.onMove());
     myPanorama.on("mousemove", () => this.onMove());
     myPanorama.on("touchmove", () => this.onMove());
     myPanorama.on("mousewheel", () => this.onWheel());
+    myPanorama.on("percent", (percent, timeLoaded) =>
+      this.setState({ percent, timeLoaded })
+    );
     myPanorama.on("loadscene", () => this.setState({ loading: true }));
   }
 
-  componentDidUpdate(pp) {
-    const { draggable, children, pitch, yaw, hfov } = this.props;
+  componentDidUpdate(pp, ps) {
+    const { firstLoad } = this.state;
+    const { draggable, children, pitch, yaw, hfov, isLoading } = this.props;
     if (pp.draggable !== draggable || pp.children.length !== children.length) {
       this.forceRender();
+    }
+    if (ps.firstLoad !== firstLoad) {
+      isLoading && isLoading(this.state.firstLoad);
     }
     pitch && myPanorama.setPitch(pitch);
     hfov && myPanorama.setHfov(hfov);
@@ -147,40 +151,24 @@ class MetaTour extends React.PureComponent {
 
   onLoad() {
     const sceneObj = myPanorama.getSceneObj(myPanorama.getScene());
-    const timeEnd = new Date().getTime();
-    const calcTime = timeEnd - this.state.timeStart;
-
-    let timeOut = 0;
-    if (calcTime > 5000) {
+    if (this.state.percent == 100) {
       document.addEventListener("click", () =>
         this.setState({ firstLoad: false })
       );
-      timeOut = calcTime;
-    } else {
-      timeOut = 3000;
     }
 
+    const { timeLoaded } = this.state;
+    const timeAutoLoad = timeLoaded < 1000 ? 2000 : timeLoaded;
     setTimeout(() => {
       this.setState({
         firstLoad: false,
       });
-    }, timeOut);
-
-    let progressValue = 0;
-    let progressEndValue = 100;
-    let progress = setInterval(() => {
-      progressValue++;
-      this.setState({ percent: progressValue });
-      if (progressValue == progressEndValue) {
-        clearInterval(progress);
-      }
-    }, timeOut / 100 - 10);
+    }, timeAutoLoad);
 
     this.setState({
       scene: sceneObj,
       loading: false,
     });
-
     if (this.props.onLoad) {
       this.props.onLoad({ id_room: myPanorama.getScene() });
       this.onCoordinates({

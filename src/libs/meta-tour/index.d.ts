@@ -16,6 +16,7 @@ export interface MetaTourPropsType {
   onLoad?: (params: OnLoadPropsType) => void;
   onHotSpotClick?: Function;
   onHotSpotDrag?: Function;
+  isLoading?: (loaded: boolean) => void;
 }
 
 export interface MetaTourScenePropsType {

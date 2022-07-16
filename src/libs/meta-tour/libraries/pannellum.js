@@ -380,10 +380,18 @@ export default (function (window, document, undefined) {
             }
             infoDisplay.load.msg.innerHTML = "";
           };
+          var timeStart = new Date().getTime();
           xhr.onprogress = function (e) {
             if (e.lengthComputable) {
               // Hiển thị tiến trình tải (theo phần trăm)
-              var percent = (e.loaded / e.total) * 100;
+              var percent = Math.round(e.loaded / e.total) * 100;
+              if (percent == 100) {
+                var timeEnd = new Date().getTime();
+              }
+              var msTime = timeEnd - timeStart;
+              if (percent > 0) {
+                fireEvent("percent", parseInt(percent), msTime);
+              }
               infoDisplay.load.lbarFill.style.width = percent + "%";
               var unit, numerator, denominator;
               if (e.total > 1e6) {
