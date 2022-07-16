@@ -10,7 +10,7 @@ export interface MetaTourPropsType {
   children?: React.ReactNode;
   draggable?: boolean;
   fadeDuration?: number;
-  onLoaded?: Function;
+  onLoad?: Function;
   onHotSpotClick?: Function;
   onHotSpotDrag?: Function;
 }

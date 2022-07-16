@@ -57,6 +57,7 @@ export default (function (window, document, undefined) {
       haov: 360,
       vaov: 180,
       vOffset: 0,
+      loading: true,
       autoRotate: false,
       autoRotateInactivityDelay: -1,
       autoRotateStopDelay: 0,
@@ -618,8 +619,6 @@ export default (function (window, document, undefined) {
       infoDisplay.errorMsg.innerHTML = "<p>" + errorMsg + "</p>";
       controls.load.style.display = "none";
       infoDisplay.load.box.style.display = "none";
-      infoDisplay.loadingPano.style.opacity = 0;
-      infoDisplay.loadingPano.style.display = "none";
       infoDisplay.errorMsg.style.display = "none";
       error = true;
       loaded = undefined;
@@ -631,8 +630,6 @@ export default (function (window, document, undefined) {
       if (error) {
         infoDisplay.load.box.style.display = "none";
         infoDisplay.errorMsg.style.display = "none";
-        infoDisplay.loadingPano.style.opacity = 0;
-        infoDisplay.loadingPano.style.display = "none";
         error = false;
         renderContainer.style.display = "block";
         fireEvent("errorcleared");
@@ -1682,10 +1679,6 @@ export default (function (window, document, undefined) {
 
       // Hide loading display
       infoDisplay.load.box.style.display = "none";
-      setTimeout(() => {
-        infoDisplay.loadingPano.style.opacity = 0;
-        infoDisplay.loadingPano.style.display = "none";
-      }, 50);
       if (preview !== undefined) {
         renderContainer.removeChild(preview);
         preview = undefined;
@@ -2211,9 +2204,7 @@ export default (function (window, document, undefined) {
             case "autoLoad":
               if (config[key] === true && renderer === undefined) {
                 // Show loading box
-                // infoDisplay.load.box.style.display = "inline";
-                infoDisplay.loadingPano.style.opacity = 1;
-                infoDisplay.loadingPano.style.display = "block";
+                infoDisplay.load.box.style.display = "none";
                 // Hide load button
                 controls.load.style.display = "none";
                 // Initialize
@@ -2419,9 +2410,7 @@ export default (function (window, document, undefined) {
       loaded = false;
 
       controls.load.style.display = "none";
-      // infoDisplay.load.box.style.display = "inline";
-      infoDisplay.loadingPano.style.opacity = 1;
-      infoDisplay.loadingPano.style.display = "block";
+      infoDisplay.load.box.style.display = "none";
       init();
     }
 
@@ -2612,7 +2601,7 @@ export default (function (window, document, undefined) {
     this.getConfig = function () {
       return config;
     };
-    this.getConfigScene = function (key) {
+    this.getSceneObj = function (key) {
       return config.scenes[key];
     };
     this.getContainer = function () {

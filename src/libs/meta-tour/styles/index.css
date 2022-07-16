@@ -16,6 +16,7 @@
   transition-duration: 0.3s;
   transition-delay: 0s;
   transition-timing-function: ease-in-out;
+  background-color: #343434;
 }
 
 .hotspot-custom-maker .hotspot-maker-tooltip {
@@ -84,14 +85,14 @@
   .hotspot-maker-icon {
   display: flex;
   position: static;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .hotspot-custom-maker .hotspot-maker.hotspot-maker-button-text {
   display: flex;
   border-radius: 10px;
   padding: 0 15px;
-  min-height: 30px;
+  min-height: 25px;
   gap: 7px;
 }
 
@@ -248,14 +249,40 @@
 }
 
 #loading_pano {
-  display: none;
+  display: flex;
   font-size: 36px;
   position: absolute;
-  top: calc(50% - 18px);
-  left: calc(50% - 18px);
+  top: 50%;
+  left: 50%;
   color: white;
-  opacity: 0;
   z-index: 12;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 120px;
+  color: var(--main-color);
+  pointer-events: none;
+}
+
+#loading_pano::after {
+  content: "";
+  background-image: url("../libraries/images/loading.svg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  width: 100%;
+  height: 100%;
+}
+
+.loading_start {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-image: url("https://ap.poly.edu.vn/images/Banner-AP.png");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  object-fit: fill;
+  transition: all 250ms ease-in-out;
 }
 
 .box {

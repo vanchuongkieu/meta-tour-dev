@@ -1,7 +1,7 @@
 import React from "react";
 import utils from "@/utils";
 import pannellum from "../libraries/pannellum";
-import Loading from "./Loading";
+import Image from "next/image";
 
 let myPanorama;
 
@@ -10,17 +10,45 @@ class MetaTour extends React.PureComponent {
     super(props);
     this.state = {
       loading: true,
+      firstLoad: true,
       container: "meta-tour-container",
     };
-    this.compassHandleClick = this.compassHandleClick.bind(this);
+    this.onPreviousCoordinates = this.onPreviousCoordinates.bind(this);
+    this.goto = this.goto.bind(this);
   }
 
   static defaultProps = {
+    yaw: 0,
+    hfov: 0,
+    pitch: 0,
     draggable: false,
     fadeDuration: 1000,
   };
 
-  renderPanorama(state) {
+  componentDidMount() {
+    this.renderPanorama("mount");
+    myPanorama.on("load", () => this.onLoad());
+    myPanorama.on("vrmove", () => this.onMove());
+    myPanorama.on("mousemove", () => this.onMove());
+    myPanorama.on("touchmove", () => this.onMove());
+    myPanorama.on("mousewheel", () => this.onWheel());
+  }
+
+  componentDidUpdate(pp) {
+    const { draggable, children, pitch, yaw, hfov } = this.props;
+    if (pp.draggable !== draggable || pp.children.length !== children.length) {
+      this.forceRender();
+    }
+    pitch && myPanorama.setPitch(pitch);
+    hfov && myPanorama.setHfov(hfov);
+    yaw && myPanorama.setYaw(yaw);
+  }
+
+  componentWillUnmount() {
+    myPanorama.destroy();
+  }
+
+  mappingScene() {
     const { children } = this.props;
     let scenes = Array.isArray(children) ? [...children] : [children];
     let sceneArray = [];
@@ -31,14 +59,14 @@ class MetaTour extends React.PureComponent {
         sceneArray.push(__deep);
       });
     }
-    const sceneObject = sceneArray.reduce((_previous, _current) => {
+    return sceneArray.reduce((_previous, _current) => {
       const hotspots = _current.hotSpots.map((hotspot) => {
         const __custom = {
           text: hotspot.tooltip,
         };
         const __deep = { ...hotspot, ...__custom };
         if (this.props.draggable) {
-          __deep.dragHandlerFunc = this.handleDragHandlerFunc;
+          __deep.dragHandlerFunc = this.onDragHandlerFunc;
           __deep.dragHandlerArgs = __deep.dragArgs && __deep.dragArgs;
         }
 
@@ -61,7 +89,7 @@ class MetaTour extends React.PureComponent {
             delete __deep.id_room;
             return {
               ...__deep,
-              clickHandlerFunc: this.handleClickHotspot,
+              clickHandlerFunc: this.onClickHotSpot,
               clickHandlerArgs: __deep.clickArgs && __deep.clickArgs,
             };
           default:
@@ -69,7 +97,7 @@ class MetaTour extends React.PureComponent {
         }
       });
 
-      const _lockScreen = {};
+      let _lockScreen = {};
       if (_current.lock) {
         _lockScreen = {
           maxPitch: _current.pitch,
@@ -91,12 +119,14 @@ class MetaTour extends React.PureComponent {
         },
       };
     }, {});
+  }
 
+  renderPanorama(state) {
     if (state === "update") {
-      this.panorama.destroy();
+      myPanorama.destroy();
     }
-
-    this.panorama = pannellum.viewer(this.state.container, {
+    const sceneObject = this.mappingScene();
+    myPanorama = pannellum.viewer(this.state.container, {
       default: {
         customControls: true,
         type: "equirectangular",
@@ -107,75 +137,43 @@ class MetaTour extends React.PureComponent {
       },
       scenes: sceneObject,
     });
-
-    myPanorama = this.panorama;
   }
 
-  componentDidMount() {
-    this.renderPanorama("mount");
-    this.panorama.on("load", () => this.onLoaded());
-    this.panorama.on("vrmove", () => this.onMouseMove());
-    this.panorama.on("mousemove", () => this.onMouseMove());
-    this.panorama.on("touchmove", () => this.onMouseMove());
-    this.panorama.on("mousewheel", () => this.onMouseWheel());
-  }
+  forceRender = () => {
+    this.renderPanorama("update");
+  };
 
-  componentDidUpdate(prevProps) {
-    if (
-      prevProps.draggable !== this.props.draggable ||
-      prevProps.children.length !== this.props.children.length
-    ) {
-      this.forceRender();
-    }
-    if (prevProps.pitch !== this.props.pitch) {
-      this.panorama.setPitch(this.props.pitch);
-    }
-    if (prevProps.hfov !== this.props.hfov) {
-      this.panorama.setHfov(this.props.hfov);
-    }
-    if (prevProps.yaw !== this.props.yaw) {
-      this.panorama.setYaw(this.props.yaw);
-    }
-  }
-
-  componentWillUnmount() {
-    this.panorama.off("load");
-    this.panorama.off("vrmove");
-    this.panorama.off("mousemove");
-    this.panorama.off("touchmove");
-    this.panorama.off("mousewheel");
-    this.panorama.destroy();
-  }
-
-  onLoaded() {
-    if (this.props.onLoaded) {
-      this.props.onLoaded({ sceneId: this.panorama.getScene() });
-      this.onPosition({
-        pitch: this.panorama.getPitch(),
-        hfov: this.panorama.getHfov(),
-        yaw: this.panorama.getYaw(),
-      });
-    }
+  onLoad() {
+    const sceneObj = myPanorama.getSceneObj(myPanorama.getScene());
     this.setState({
-      scene: {
-        ...this.panorama.getConfigScene(this.panorama.getScene()),
-      },
+      scene: sceneObj,
       loading: false,
     });
+    setTimeout(() => {
+      this.setState({ firstLoad: false });
+    }, 2000);
+    if (this.props.onLoad) {
+      this.props.onLoad({ sceneId: myPanorama.getScene() });
+      this.onCoordinates({
+        pitch: myPanorama.getPitch(),
+        hfov: myPanorama.getHfov(),
+        yaw: myPanorama.getYaw(),
+      });
+    }
   }
 
-  onMouseWheel() {
-    const hfov = this.panorama.getHfov();
-    this.onPosition({ hfov });
+  onWheel() {
+    const hfov = myPanorama.getHfov();
+    this.onCoordinates({ hfov });
   }
 
-  onMouseMove() {
-    const pitch = this.panorama.getPitch();
-    const yaw = this.panorama.getYaw();
-    this.onPosition({ pitch, yaw });
+  onMove() {
+    const pitch = myPanorama.getPitch();
+    const yaw = myPanorama.getYaw();
+    this.onCoordinates({ pitch, yaw });
   }
 
-  handleClickHotspot = (hs, args) => {
+  onClickHotSpot = (hs, args) => {
     if (this.props.onHotSpotClick) {
       this.props.onHotSpotClick(hs, args);
     }
@@ -184,10 +182,10 @@ class MetaTour extends React.PureComponent {
     }
   };
 
-  handleDragHandlerFunc = (hs, args) => {
-    this.onPosition({
+  onDragHandlerFunc = (hs, args) => {
+    this.onCoordinates({
       pitch: hs.pitch,
-      hfov: this.panorama.getHfov(),
+      hfov: myPanorama.getHfov(),
       yaw: hs.yaw,
     });
     if (this.props.onHotSpotDrag) {
@@ -195,23 +193,19 @@ class MetaTour extends React.PureComponent {
     }
   };
 
-  compassHandleClick() {
+  onPreviousCoordinates() {
     const pitch = this.state.scene.pitch || 0;
     const hfov = this.state.scene.hfov || 120;
     const yaw = this.state.scene.yaw || 0;
-    this.panorama.lookAt(pitch, yaw, hfov);
+    myPanorama.lookAt(pitch, yaw, hfov);
   }
 
-  onPosition({ pitch, yaw, hfov }) {
+  onCoordinates({ pitch, yaw, hfov }) {
     const { onPitch, onYaw, onHfov } = this.props;
-    if (onPitch && pitch) onPitch(parseInt(pitch));
-    if (onHfov && hfov) onHfov(parseInt(parseInt(hfov)));
-    if (onYaw && yaw) onYaw(parseInt(yaw));
+    if (onPitch && pitch) onPitch(pitch);
+    if (onHfov && hfov) onHfov(hfov);
+    if (onYaw && yaw) onYaw(yaw);
   }
-
-  forceRender = () => {
-    this.renderPanorama("update");
-  };
 
   static loadScene(sceneId, targetPitch, targetYaw, targetHfov, fadeDone) {
     if (myPanorama && sceneId && sceneId !== "") {
@@ -229,21 +223,26 @@ class MetaTour extends React.PureComponent {
     const hfov = myPanorama.getHfov();
     const calcHfov = hfov > 80 ? hfov - 30 : hfov;
     myPanorama.lookAt(pitch, yaw, calcHfov, animated, () => {
+      this.setState({ loading: true });
       myPanorama.loadScene(sceneId);
     });
   }
 
   render() {
-    const { scene, loading, container } = this.state;
+    const { scene, loading, firstLoad, container } = this.state;
     return (
       <div className="meta-tour-wrapper">
-        <Loading />
-        <div id={container}></div>
+        <div
+          id="loading_pano"
+          style={{ opacity: !firstLoad && loading ? 0.8 : 0 }}
+        ></div>
+        <div className="loading_start" style={{ opacity: firstLoad ? 1 : 0 }} />
+        <div id={container} style={{ opacity: firstLoad ? 0 : 0.8 }}></div>
         <div className="control-bottom-right">
-          {scene && scene.compass && (
+          {scene && scene.compass && !firstLoad && (
             <div
               className="control-bottom-item compass"
-              onClick={this.compassHandleClick}
+              onClick={this.onPreviousCoordinates}
               id="compass_icon"
             >
               <i className="icon-compass"></i>
