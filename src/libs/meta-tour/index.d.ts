@@ -42,15 +42,6 @@ export function loadScene(
   fadeDone?: boolean
 ): void;
 
-export function lookAt(
-  pitch?: number,
-  yaw?: number,
-  hfov?: number,
-  animated?: boolean | number,
-  callback?: Function,
-  callbackArgs?: object
-): ViewerPropsType;
-
 export namespace MetaTour {
   export function Scene(props: MetaTourScenePropsType): JSX.Element;
 }

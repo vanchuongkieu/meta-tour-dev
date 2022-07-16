@@ -5,28 +5,23 @@ import { useState } from "react";
 const panorams = [
   {
     _id: "scene1",
-    pitch: 0.24362161026749807,
-    yaw: -5.619446410686189,
+    pitch: 0,
+    yaw: 112,
     hfov: 120,
     image:
       "https://res.cloudinary.com/lavana/image/upload/v1657586907/panoramas/25_6_2022_fpoly_1_-_Panorama_4_-_Panorama_jtzttr.jpg",
+    compass: true,
     hotSpots: [
       {
         _id: "hs1",
-        pitch: -8.970919321567305,
-        yaw: 7.617890278757896,
+        pitch: -0.5863365768080424,
+        yaw: 110.88908641173171,
         icon: "location-dot",
-        transform: {
-          scale: 1.4,
-          rotate: 29,
-          rotateZ: -33,
-          rotateY: 12,
-          rotateX: -9,
-        },
+        transform: {},
         type: "visit",
         buttonText: "visit",
         tooltip: "Man 1",
-        sceneId: "scene2",
+        id_room: "scene2",
         animation: "bounce",
         clickArgs: 1,
       },
@@ -60,6 +55,7 @@ const panorams = [
   },
   {
     _id: "scene2",
+    compass: true,
     image:
       "https://res.cloudinary.com/lavana/image/upload/v1657586905/panoramas/25_6_2022_fpoly_1_-_Panorama_5_-_Panorama_bp9w3r.jpg",
     hotSpots: [
@@ -72,7 +68,7 @@ const panorams = [
         transform: {
           scale: 1.4,
         },
-        sceneId: "scene1",
+        id_room: "scene1",
         animation: "pulse",
       },
     ],
@@ -80,13 +76,18 @@ const panorams = [
 ];
 
 const Home: NextPage = () => {
-  const [hfov, setHfov] = useState<number>(120);
-  const [pitch, setPitch] = useState<number>(0);
-  const [yaw, setYaw] = useState<number>(0);
+  // const [hfov, setHfov] = useState<number>(120);
+  // const [pitch, setPitch] = useState<number>(0);
+  // const [yaw, setYaw] = useState<number>(0);
 
   return (
     <div>
-      <MetaTour
+      <MetaTour>
+        {panorams.map((panoram) => (
+          <MetaTour.Scene {...panoram} key={panoram._id} />
+        ))}
+      </MetaTour>
+      {/* <MetaTour
         yaw={yaw}
         hfov={hfov}
         pitch={pitch}
@@ -100,9 +101,8 @@ const Home: NextPage = () => {
         {panorams.map((panoram) => (
           <MetaTour.Scene {...panoram} key={panoram._id} />
         ))}
-        {/* <MetaTour.Scene {...panorams[0]} key={panorams[0]._id} /> */}
       </MetaTour>
-      {/* <div className="box">
+      <div className="box">
         <div>
           <div>
             <strong>HFOV: </strong> {hfov}
@@ -111,8 +111,9 @@ const Home: NextPage = () => {
             type="range"
             min={50}
             max={120}
+            step={1}
             value={hfov}
-            onChange={(e) => setHfov(Number(e.target.value))}
+            onChange={(e) => setHfov(parseInt(e.target.value))}
           />
         </div>
         <div>
@@ -121,10 +122,11 @@ const Home: NextPage = () => {
           </div>
           <input
             type="range"
-            min={-90}
-            max={90}
+            min={-57}
+            max={57}
+            step={1}
             value={pitch}
-            onChange={(e) => setPitch(Number(e.target.value))}
+            onChange={(e) => setPitch(parseInt(e.target.value))}
           />
         </div>
         <div>
@@ -133,10 +135,11 @@ const Home: NextPage = () => {
           </div>
           <input
             type="range"
-            min={-90}
-            max={90}
+            min={-180}
+            max={65}
+            step={1}
             value={yaw}
-            onChange={(e) => setYaw(Number(e.target.value))}
+            onChange={(e) => setYaw(parseInt(e.target.value))}
           />
         </div>
       </div> */}

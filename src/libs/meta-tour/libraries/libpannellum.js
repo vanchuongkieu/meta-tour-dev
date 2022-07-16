@@ -1,5 +1,4 @@
 /* eslint-disable */
-
 export default (function (window, document, undefined) {
   if (!window || !document) return;
   function Renderer(container) {

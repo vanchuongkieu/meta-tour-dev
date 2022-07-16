@@ -1,4 +1,4 @@
-@import "./libraries/pannellum.css";
+@import "../libraries/pannellum.css";
 
 :root {
   --main-color: red;
@@ -6,8 +6,16 @@
 }
 
 .meta-tour-wrapper {
-  width: 100vw;
-  height: 100vh;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  transition-property: left, right, top, bottom, width, height;
+  transition-duration: 0.3s;
+  transition-delay: 0s;
+  transition-timing-function: ease-in-out;
 }
 
 .hotspot-custom-maker .hotspot-maker-tooltip {
@@ -220,20 +228,34 @@
 }
 
 .control-bottom-item {
-  border-radius: 50%;
+  position: relative;
+  z-index: 42;
   cursor: pointer;
-}
-
-.control-bottom-item i {
-  font-size: 30px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
+  font-size: 12px;
+  line-height: 30px;
+  text-align: center;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.6);
+  transition: all 0.4s;
+  margin: 0 2px;
 }
 
 .control-bottom-item.compass {
-  color: #ffffff;
-  transform: var(--transform-compass);
-  -moz-transform: var(--transform-compass);
-  -webkit-transform: var(--transform-compass);
+  font-size: 16px;
+}
+
+#loading_pano {
+  display: none;
+  font-size: 36px;
+  position: absolute;
+  top: calc(50% - 18px);
+  left: calc(50% - 18px);
+  color: white;
+  opacity: 0;
+  z-index: 12;
 }
 
 .box {
@@ -242,4 +264,32 @@
   top: 0;
   left: 0;
   padding: 10px;
+}
+
+@font-face {
+  font-family: "compass";
+  src: url("./fonts/compass.eot");
+  src: url("./fonts/compass.eot") format("embedded-opentype"),
+    url("./fonts/compass.ttf") format("truetype"),
+    url("./fonts/compass.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+[class^="icon-compass"],
+[class*=" icon-compass"] {
+  font-family: "compass" !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-compass:before {
+  content: "\e902";
 }
