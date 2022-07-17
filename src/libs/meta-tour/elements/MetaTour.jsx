@@ -295,6 +295,7 @@ class Compass extends PureComponent {
     const hfov = scene.hfov || 120;
     const yaw = scene.yaw || 0;
     myPanorama.lookAt(pitch, yaw, hfov);
+    myPanorama.stopOrientation();
   }
 
   render() {

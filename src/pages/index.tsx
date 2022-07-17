@@ -101,10 +101,11 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     setIsMobile(utils.isMobileOrIOS);
+    setOrientationActive(isOrientationActive());
   }, []);
 
   const handleOrientation = () => {
-    setOrientationActive(isOrientationActive());
+    setOrientationActive(!orientationActive);
     orientationActive ? stopOrientation() : startOrientation();
   };
 
