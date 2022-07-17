@@ -1,5 +1,5 @@
-import React from "react";
 import utils from "@/utils";
+import React, { PureComponent } from "react";
 import pannellum from "../libraries/pannellum";
 
 let myPanorama;
@@ -10,7 +10,6 @@ class MetaTour extends React.PureComponent {
     this.state = {
       percent: 0,
       loading: true,
-      firstLoad: true,
       container: "meta-tour-container",
     };
     this.onPreviousCoordinates = this.onPreviousCoordinates.bind(this);
@@ -23,6 +22,7 @@ class MetaTour extends React.PureComponent {
     pitch: 0,
     draggable: false,
     fadeDuration: 1500,
+    fullscreenCtrl: false,
   };
 
   componentDidMount() {
@@ -32,20 +32,18 @@ class MetaTour extends React.PureComponent {
     myPanorama.on("mousemove", () => this.onMove());
     myPanorama.on("touchmove", () => this.onMove());
     myPanorama.on("mousewheel", () => this.onWheel());
-    myPanorama.on("percent", (percent, timeLoaded) =>
-      this.setState({ percent, timeLoaded })
-    );
+    myPanorama.on("onprogress", (percent, timeLoaded) => {
+      if (this.props.onProgress) {
+        this.props.onProgress(percent, timeLoaded);
+      }
+    });
     myPanorama.on("loadscene", () => this.setState({ loading: true }));
   }
 
-  componentDidUpdate(pp, ps) {
-    const { firstLoad } = this.state;
-    const { draggable, children, pitch, yaw, hfov, isLoading } = this.props;
+  componentDidUpdate(pp) {
+    const { draggable, children, pitch, yaw, hfov } = this.props;
     if (pp.draggable !== draggable || pp.children.length !== children.length) {
       this.forceRender();
-    }
-    if (ps.firstLoad !== firstLoad) {
-      isLoading && isLoading(this.state.firstLoad);
     }
     pitch && myPanorama.setPitch(pitch);
     hfov && myPanorama.setHfov(hfov);
@@ -75,7 +73,6 @@ class MetaTour extends React.PureComponent {
         const __deep = { ...hotspot, ...__custom };
         if (this.props.draggable) {
           __deep.dragHandlerFunc = this.onDragHandlerFunc;
-          __deep.dragHandlerArgs = __deep.dragArgs && __deep.dragArgs;
         }
 
         switch (__deep.type) {
@@ -96,7 +93,7 @@ class MetaTour extends React.PureComponent {
             return {
               ...__deep,
               clickHandlerFunc: this.onClickHotSpot,
-              clickHandlerArgs: __deep.clickArgs && __deep.clickArgs,
+              clickHandlerArgs: __deep.params && __deep.params,
             };
           default:
             return __deep;
@@ -139,6 +136,7 @@ class MetaTour extends React.PureComponent {
         draggableHotSpot: this.props.draggable,
         sceneFadeDuration: this.props.fadeDuration,
         orientationOnByDefault: utils.isMobileOrIOS,
+        showFullscreenCtrl: this.props.fullscreenCtrl,
         firstScene: this.props.firstScene || Object.keys(sceneObject)[0],
       },
       scenes: sceneObject,
@@ -151,31 +149,18 @@ class MetaTour extends React.PureComponent {
 
   onLoad() {
     const sceneObj = myPanorama.getSceneObj(myPanorama.getScene());
-    if (this.state.percent == 100) {
-      document.addEventListener("click", () =>
-        this.setState({ firstLoad: false })
-      );
-    }
-
-    const { timeLoaded } = this.state;
-    const timeAutoLoad = timeLoaded < 1000 ? 2000 : timeLoaded;
-    setTimeout(() => {
-      this.setState({
-        firstLoad: false,
-      });
-    }, timeAutoLoad);
-
     this.setState({
       scene: sceneObj,
       loading: false,
     });
-    if (this.props.onLoad) {
-      this.props.onLoad({ id_room: myPanorama.getScene() });
-      this.onCoordinates({
-        pitch: myPanorama.getPitch(),
-        hfov: myPanorama.getHfov(),
-        yaw: myPanorama.getYaw(),
-      });
+    this.onCoordinates({
+      pitch: myPanorama.getPitch(),
+      hfov: myPanorama.getHfov(),
+      yaw: myPanorama.getYaw(),
+    });
+    if (this.props.loadDone) {
+      const id_room = myPanorama.getScene();
+      this.props.loadDone(id_room);
     }
   }
 
@@ -190,23 +175,24 @@ class MetaTour extends React.PureComponent {
     this.onCoordinates({ pitch, yaw });
   }
 
-  onClickHotSpot = (hs, args) => {
-    if (this.props.onHotSpotClick) {
-      this.props.onHotSpotClick(hs, args);
-    }
+  onClickHotSpot = (hs, values) => {
     if (hs.type == "link") {
-      window.open(hs.clickArgs, "_blank");
+      window.open(hs.values, hs.targetURL || "_self");
+    } else {
+      if (this.props.onHotSpotClick) {
+        this.props.onHotSpotClick(hs, values);
+      }
     }
   };
 
-  onDragHandlerFunc = (hs, args) => {
+  onDragHandlerFunc = (hs) => {
     this.onCoordinates({
       pitch: hs.pitch,
       hfov: myPanorama.getHfov(),
       yaw: hs.yaw,
     });
     if (this.props.onHotSpotDrag) {
-      this.props.onHotSpotDrag(hs, args);
+      this.props.onHotSpotDrag(hs);
     }
   };
 
@@ -232,44 +218,96 @@ class MetaTour extends React.PureComponent {
   }
 
   static loadScene(id_room, targetPitch, targetYaw, targetHfov) {
-    myPanorama.loadScene(id_room, targetPitch, targetYaw, targetHfov);
+    if (id_room != myPanorama.getScene()) {
+      myPanorama.loadScene(id_room, targetPitch, targetYaw, targetHfov);
+    }
+  }
+
+  static toggleFullscreen() {
+    myPanorama.toggleFullscreen();
+  }
+
+  static startOrientation() {
+    myPanorama.startOrientation();
+  }
+
+  static stopOrientation() {
+    myPanorama.stopOrientation();
+  }
+
+  static zoomIn() {
+    myPanorama.zoomIn();
+  }
+
+  static zoomOut() {
+    myPanorama.zoomOut();
   }
 
   render() {
-    const { scene, loading, firstLoad, container, percent } = this.state;
+    const { loading, container } = this.state;
+    const loadingStyle = {
+      opacity: loading ? 1 : 0,
+      display: loading ? "block" : "none",
+    };
+
     return (
       <div className="mt-wrapper">
-        {firstLoad && (
-          <div className="background-loading">{percent && percent + "%"}</div>
-        )}
-        <div
-          className="mt-loading"
-          style={{ opacity: !firstLoad && loading ? 1 : 0 }}
-        />
-        <div
-          id={container}
-          className="mt-container"
-          style={{
-            opacity: firstLoad ? 0 : 1,
-            pointerEvents: firstLoad ? "none" : "auto",
-          }}
-        />
-        <div className="control-bottom-right">
-          {scene && scene.compass && !firstLoad && (
-            <div
-              className="control-bottom-item compass"
-              onClick={this.onPreviousCoordinates}
-              id="compass_icon"
-            >
-              <i className="icon-compass"></i>
-            </div>
-          )}
-        </div>
+        <div className="mt-loading" style={loadingStyle} />
+        <div id={container} className="mt-container" />
       </div>
     );
   }
 }
 
+class Compass extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.state = {
+      scene: {},
+    };
+    this.onPreviousCoordinates = this.onPreviousCoordinates.bind(this);
+  }
+
+  componentDidMount() {
+    this.setRoom(this.props.room);
+  }
+
+  componentDidUpdate(pp) {
+    if (pp.room !== this.props.room) {
+      this.setRoom(this.props.room);
+    }
+  }
+
+  setRoom(id_room) {
+    if (id_room) {
+      const scene = myPanorama.getSceneObj(id_room);
+      this.setState({ scene: scene });
+    }
+  }
+
+  onPreviousCoordinates() {
+    const { scene } = this.state;
+    const pitch = scene.pitch || 0;
+    const hfov = scene.hfov || 120;
+    const yaw = scene.yaw || 0;
+    myPanorama.lookAt(pitch, yaw, hfov);
+  }
+
+  render() {
+    const { scene } = this.state;
+    return scene && scene.compass ? (
+      <div
+        onClick={this.onPreviousCoordinates}
+        className="mt-compass"
+        id="compass_icon"
+      >
+        <i className="icon-compass"></i>
+      </div>
+    ) : null;
+  }
+}
+
+MetaTour.Compass = Compass;
 MetaTour.Scene = () => {};
 
 export default MetaTour;

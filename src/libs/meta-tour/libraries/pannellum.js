@@ -260,7 +260,9 @@ export default (function (window, document, undefined) {
     var orientationSupport = false;
 
     if (utils.isMobileOrIOS) {
-      controls.container.appendChild(controls.orientation);
+      if (!initialConfig.default.customControls) {
+        controls.container.appendChild(controls.orientation);
+      }
       orientationSupport = true;
     }
 
@@ -390,7 +392,7 @@ export default (function (window, document, undefined) {
               }
               var msTime = timeEnd - timeStart;
               if (percent > 0) {
-                fireEvent("percent", parseInt(percent), msTime);
+                fireEvent("onprogress", parseInt(percent), msTime);
               }
               infoDisplay.load.lbarFill.style.width = percent + "%";
               var unit, numerator, denominator;
@@ -2589,6 +2591,9 @@ export default (function (window, document, undefined) {
     this.getRenderer = function () {
       return renderer;
     };
+    this.getFullscreen = function () {
+      return !fullscreenActive;
+    };
     this.mouseEventToCoords = function (event) {
       return mouseEventToCoords(event);
     };
@@ -2742,6 +2747,12 @@ export default (function (window, document, undefined) {
     };
 
     // hành động
+    this.zoomIn = function () {
+      zoomIn();
+    };
+    this.zoomOut = function () {
+      zoomOut();
+    };
     this.lookAt = function (
       pitch,
       yaw,

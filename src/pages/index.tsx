@@ -1,8 +1,19 @@
-import { MetaTour } from "@/libs/meta-tour";
+import MetaTour, {
+  Scene,
+  zoomIn,
+  zoomOut,
+  Compass,
+  loadScene,
+  toggleFullscreen,
+  MetaTourScenePropsType,
+  startOrientation,
+  stopOrientation,
+} from "@/libs/meta-tour";
+import utils from "@/utils";
 import type { NextPage } from "next";
 import { useEffect, useState } from "react";
 
-const panorams = [
+const panorams: MetaTourScenePropsType[] = [
   {
     _id: "scene1",
     pitch: 0,
@@ -22,7 +33,7 @@ const panorams = [
         tooltip: "Man 1",
         id_room: "scene2",
         animation: "bounce",
-        clickArgs: 1,
+        values: 1,
       },
       {
         _id: "hs2",
@@ -34,7 +45,7 @@ const panorams = [
         transform: {
           scale: 1.4,
         },
-        clickArgs: 1,
+        values: 1,
         animation: "pulse",
       },
       {
@@ -47,7 +58,7 @@ const panorams = [
         transform: {
           scale: 1.4,
         },
-        clickArgs: "tel:0982934000",
+        values: "tel:0982934000",
         animation: "bounce",
       },
     ],
@@ -80,29 +91,50 @@ const panorams = [
 
 const Home: NextPage = () => {
   const [idRoom, setIdRoom] = useState<string>("");
-  const [isLoading, setLoading] = useState<boolean>(true);
+  const [progress, setProgress] = useState<number>(0);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [orientationActive, setOrientationActive] = useState<boolean>(false);
   // const [hfov, setHfov] = useState<number>(120);
   // const [pitch, setPitch] = useState<number>(0);
   // const [yaw, setYaw] = useState<number>(0);
 
   useEffect(() => {
-    console.log(isLoading);
-  }, [isLoading]);
+    setIsMobile(utils.isMobileOrIOS);
+  }, []);
+
+  const handleOrientation = () => {
+    setOrientationActive(!orientationActive);
+    orientationActive ? stopOrientation() : startOrientation();
+  };
 
   return (
     <div>
       <MetaTour
-        isLoading={setLoading}
-        onLoad={({ id_room }) => setIdRoom(id_room)}
+        loadDone={setIdRoom}
+        onProgress={(percent) => setProgress(percent)}
       >
         {panorams.map((panoram) => (
-          <MetaTour.Scene {...panoram} key={panoram._id} />
+          <Scene {...panoram} key={panoram._id} />
         ))}
       </MetaTour>
-      {/* <div style={{ position: "absolute", top: 0, left: 0 }}>
-        <button onClick={() => MetaTour.loadScene("scene1")}>Room 1</button>
-        <button onClick={() => MetaTour.loadScene("scene2")}>Room 2</button>
-      </div> */}
+      <div style={{ margin: 10 }}>
+        <Compass room={idRoom} />
+      </div>
+      <div style={{ position: "absolute", top: 50, left: 0, zIndex: 12 }}>
+        {isMobile && (
+          <button onClick={handleOrientation}>
+            {orientationActive ? "STOP" : "START"}
+          </button>
+        )}
+        <br />
+        <button onClick={() => loadScene("scene1")}>Room 1</button>
+        <button onClick={() => loadScene("scene2")}>Room 2</button>
+        <br />
+        <button onClick={zoomIn}>Zoom In</button>
+        <button onClick={zoomOut}>Zoom Out</button>
+        <br />
+        <button onClick={toggleFullscreen}>Fullscreen</button>
+      </div>
     </div>
     // <div>
     //   <MetaTour

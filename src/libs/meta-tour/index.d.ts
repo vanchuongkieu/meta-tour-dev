@@ -1,28 +1,25 @@
 import pannellum from "./libraries/pannellum";
 
-interface OnLoadPropsType {
-  id_room: string;
-}
 export interface MetaTourPropsType {
+  yaw?: number;
   hfov?: number;
   pitch?: number;
-  yaw?: number;
-  onPitch?: Function;
-  onHfov?: Function;
-  onYaw?: Function;
-  children?: React.ReactNode;
   draggable?: boolean;
   fadeDuration?: number;
-  onLoad?: (params: OnLoadPropsType) => void;
-  onHotSpotClick?: Function;
-  onHotSpotDrag?: Function;
-  isLoading?: (loaded: boolean) => void;
+  fullscreenCtrl?: boolean;
+  children?: React.ReactNode;
+  onYaw?: (yaw: number) => void;
+  onHfov?: (hfov: number) => void;
+  onPitch?: (pitch: number) => void;
+  loadDone?: (id_room: string) => void;
+  onProgress?: (percent: number, time: number) => void;
+  onHotSpotDrag?: (hs: MetaTourHotSpotPropsType) => void;
+  onHotSpotClick?: (hs: MetaTourHotSpotPropsType, values: any) => void;
 }
 
 export interface MetaTourScenePropsType {
   _id: string;
   image: string;
-  hotSpots?: Array;
   yaw?: number;
   pitch?: number;
   hfov?: number;
@@ -34,6 +31,7 @@ export interface MetaTourScenePropsType {
   minYaw?: number;
   compass?: boolean;
   lock?: boolean;
+  hotSpots?: MetaTourHotSpotPropsType[];
 }
 
 export interface MetaTourSceneTransformPropsType {
@@ -46,25 +44,55 @@ export interface MetaTourSceneTransformPropsType {
 
 export interface MetaTourHotSpotPropsType {
   _id: string;
-  pitch?: number;
   yaw?: number;
+  values?: any;
+  icon?: string;
+  pitch?: number;
   tooltip?: string;
   id_room?: string;
-  transform?: MetaTourSceneTransformPropsType;
-  type: "link" | "visit" | "click";
   animation?: "pulse" | "bounce";
+  type: "link" | "visit" | "click";
+  transform?: MetaTourSceneTransformPropsType;
+  targetURL?: "_blank" | "_self" | "_parent" | "_top" | string;
+}
+
+export interface CompassPropsType {
+  room: string;
 }
 
 export type ViewerPropsType = ReturnType<typeof pannellum.viewer>;
 
-export function MetaTour(props: MetaTourPropsType): JSX.Element;
+function Scene(props: MetaTourScenePropsType): JSX.Element;
 
-export namespace MetaTour {
-  export function Scene(props: MetaTourScenePropsType): JSX.Element;
-  export function loadScene(
-    id_room: string,
-    targetPitch?: string,
-    targetYaw?: string,
-    targetHfov?: string
-  ): void;
+function Compass(props: CompassPropsType): JSX.Element;
+
+function loadScene(
+  id_room: string,
+  targetPitch?: string,
+  targetYaw?: string,
+  targetHfov?: string
+): void;
+
+function zoomIn(): void;
+function zoomOut(): void;
+function startOrientation(): void;
+function stopOrientation(): void;
+function toggleFullscreen(): void;
+
+function MetaTour(props: MetaTourPropsType): JSX.Element;
+
+namespace MetaTour {
+  export { Scene, Compass };
 }
+
+export {
+  Scene,
+  Compass,
+  zoomIn,
+  zoomOut,
+  loadScene,
+  toggleFullscreen,
+  startOrientation,
+  stopOrientation,
+};
+export default MetaTour;
