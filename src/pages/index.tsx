@@ -8,6 +8,7 @@ import MetaTour, {
   MetaTourScenePropsType,
   startOrientation,
   stopOrientation,
+  isOrientationActive,
 } from "@/libs/meta-tour";
 import utils from "@/utils";
 import type { NextPage } from "next";
@@ -103,7 +104,7 @@ const Home: NextPage = () => {
   }, []);
 
   const handleOrientation = () => {
-    setOrientationActive(!orientationActive);
+    setOrientationActive(isOrientationActive());
     orientationActive ? stopOrientation() : startOrientation();
   };
 

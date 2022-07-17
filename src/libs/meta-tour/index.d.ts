@@ -78,6 +78,7 @@ function zoomOut(): void;
 function startOrientation(): void;
 function stopOrientation(): void;
 function toggleFullscreen(): void;
+function isOrientationActive(): boolean;
 
 function MetaTour(props: MetaTourPropsType): JSX.Element;
 
@@ -94,5 +95,6 @@ export {
   toggleFullscreen,
   startOrientation,
   stopOrientation,
+  isOrientationActive,
 };
 export default MetaTour;

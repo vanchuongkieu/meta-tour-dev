@@ -235,6 +235,10 @@ class MetaTour extends React.PureComponent {
     myPanorama.stopOrientation();
   }
 
+  static isOrientationActive() {
+    return myPanorama.isOrientationActive();
+  }
+
   static zoomIn() {
     myPanorama.zoomIn();
   }
