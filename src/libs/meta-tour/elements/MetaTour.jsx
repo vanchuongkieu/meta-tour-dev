@@ -239,6 +239,10 @@ class MetaTour extends React.PureComponent {
     return myPanorama.isOrientationActive();
   }
 
+  static isOrientationSupported() {
+    return myPanorama.isOrientationSupported();
+  }
+
   static zoomIn() {
     myPanorama.zoomIn();
   }
@@ -294,8 +298,9 @@ class Compass extends PureComponent {
     const pitch = scene.pitch || 0;
     const hfov = scene.hfov || 120;
     const yaw = scene.yaw || 0;
-    myPanorama.lookAt(pitch, yaw, hfov);
     myPanorama.stopOrientation();
+    myPanorama.lookAt(pitch, yaw, hfov);
+    this.props.onClick && this.props.onClick();
   }
 
   render() {

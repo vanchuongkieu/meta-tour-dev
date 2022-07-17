@@ -58,6 +58,7 @@ export interface MetaTourHotSpotPropsType {
 
 export interface CompassPropsType {
   room: string;
+  onClick?: Function;
 }
 
 export type ViewerPropsType = ReturnType<typeof pannellum.viewer>;
@@ -79,6 +80,7 @@ function startOrientation(): void;
 function stopOrientation(): void;
 function toggleFullscreen(): void;
 function isOrientationActive(): boolean;
+function isOrientationSupported(): boolean;
 
 function MetaTour(props: MetaTourPropsType): JSX.Element;
 
@@ -96,5 +98,6 @@ export {
   startOrientation,
   stopOrientation,
   isOrientationActive,
+  isOrientationSupported,
 };
 export default MetaTour;

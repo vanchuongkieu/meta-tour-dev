@@ -9,8 +9,8 @@ import MetaTour, {
   startOrientation,
   stopOrientation,
   isOrientationActive,
+  isOrientationSupported,
 } from "@/libs/meta-tour";
-import utils from "@/utils";
 import type { NextPage } from "next";
 import { useEffect, useState } from "react";
 
@@ -100,7 +100,7 @@ const Home: NextPage = () => {
   // const [yaw, setYaw] = useState<number>(0);
 
   useEffect(() => {
-    setIsMobile(utils.isMobileOrIOS);
+    setIsMobile(isOrientationSupported());
     setOrientationActive(isOrientationActive());
   }, []);
 
@@ -120,7 +120,7 @@ const Home: NextPage = () => {
         ))}
       </MetaTour>
       <div style={{ margin: 10 }}>
-        <Compass room={idRoom} />
+        <Compass room={idRoom} onClick={() => setOrientationActive(false)} />
       </div>
       <div style={{ position: "absolute", top: 50, left: 0, zIndex: 12 }}>
         {isMobile && (

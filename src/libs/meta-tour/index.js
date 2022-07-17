@@ -9,6 +9,7 @@ const toggleFullscreen = MetaTour.toggleFullscreen;
 const startOrientation = MetaTour.startOrientation;
 const stopOrientation = MetaTour.stopOrientation;
 const isOrientationActive = MetaTour.isOrientationActive;
+const isOrientationSupported = MetaTour.isOrientationSupported;
 
 export {
   loadScene,
@@ -20,5 +21,6 @@ export {
   startOrientation,
   stopOrientation,
   isOrientationActive,
+  isOrientationSupported,
 };
 export default MetaTour;

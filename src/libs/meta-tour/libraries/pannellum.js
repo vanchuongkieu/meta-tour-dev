@@ -2745,6 +2745,9 @@ export default (function (window, document, undefined) {
       else animateInit();
       return this;
     };
+    this.setOrientation = function (bool) {
+      orientation = bool;
+    };
 
     // hành động
     this.zoomIn = function () {
