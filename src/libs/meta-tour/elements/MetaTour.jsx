@@ -28,10 +28,12 @@ class MetaTour extends React.PureComponent {
   componentDidMount() {
     this.renderPanorama("mount");
     myPanorama.on("load", () => this.onLoad());
-    myPanorama.on("vrmove", () => this.onMove());
-    myPanorama.on("mousemove", () => this.onMove());
-    myPanorama.on("touchmove", () => this.onMove());
-    myPanorama.on("mousewheel", () => this.onWheel());
+    myPanorama.on("vrmove", () => this.onEventMove());
+    myPanorama.on("mousemove", () => this.onEventMove());
+    myPanorama.on("touchmove", () => this.onEventMove());
+    myPanorama.on("mousewheel", () => this.onEventWheel());
+    myPanorama.on("touchstart", () => this.onEventDown());
+    myPanorama.on("mousedown", () => this.onEventDown());
     myPanorama.on("onprogress", (percent, timeLoaded) => {
       if (this.props.onProgress) {
         this.props.onProgress(percent, timeLoaded);
@@ -164,15 +166,21 @@ class MetaTour extends React.PureComponent {
     }
   }
 
-  onWheel() {
+  onEventWheel() {
     const hfov = myPanorama.getHfov();
     this.onCoordinates({ hfov });
   }
 
-  onMove() {
+  onEventMove() {
     const pitch = myPanorama.getPitch();
     const yaw = myPanorama.getYaw();
     this.onCoordinates({ pitch, yaw });
+  }
+
+  onEventDown() {
+    if (this.props.onEventDown) {
+      this.props.onEventDown({ orientation: false });
+    }
   }
 
   onClickHotSpot = (hs, values) => {

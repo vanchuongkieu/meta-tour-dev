@@ -93,26 +93,27 @@ const panorams: MetaTourScenePropsType[] = [
 const Home: NextPage = () => {
   const [idRoom, setIdRoom] = useState<string>("");
   const [progress, setProgress] = useState<number>(0);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-  const [orientationActive, setOrientationActive] = useState<boolean>(false);
+  const [isOrienSupported, setOrienSupported] = useState<boolean>(false);
+  const [isOrientation, setOrientation] = useState<boolean>(false);
   // const [hfov, setHfov] = useState<number>(120);
   // const [pitch, setPitch] = useState<number>(0);
   // const [yaw, setYaw] = useState<number>(0);
 
   useEffect(() => {
-    setIsMobile(isOrientationSupported());
-    setOrientationActive(isOrientationActive());
+    setOrienSupported(isOrientationSupported());
+    setOrientation(isOrientationActive());
   }, []);
 
   const handleOrientation = () => {
-    setOrientationActive(!orientationActive);
-    orientationActive ? stopOrientation() : startOrientation();
+    setOrientation(!isOrientation);
+    isOrientation ? stopOrientation() : startOrientation();
   };
 
   return (
     <div>
       <MetaTour
         loadDone={setIdRoom}
+        onEventDown={({ orientation }) => setOrientation(orientation)}
         onProgress={(percent) => setProgress(percent)}
       >
         {panorams.map((panoram) => (
@@ -120,12 +121,12 @@ const Home: NextPage = () => {
         ))}
       </MetaTour>
       <div style={{ margin: 10 }}>
-        <Compass room={idRoom} onClick={() => setOrientationActive(false)} />
+        <Compass room={idRoom} onClick={() => setOrientation(false)} />
       </div>
       <div style={{ position: "absolute", top: 50, left: 0, zIndex: 12 }}>
-        {isMobile && (
+        {isOrienSupported && (
           <button onClick={handleOrientation}>
-            {orientationActive ? "STOP" : "START"}
+            {isOrientation ? "STOP" : "START"}
           </button>
         )}
         <br />
