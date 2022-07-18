@@ -20,6 +20,7 @@ class MetaTour extends React.PureComponent {
     yaw: 0,
     hfov: 0,
     pitch: 0,
+    autoLoad: false,
     draggable: false,
     fadeDuration: 1500,
   };
@@ -134,6 +135,7 @@ class MetaTour extends React.PureComponent {
     const sceneObject = this.mappingScene();
     myPanorama = pannellum.viewer(this.state.container, {
       default: {
+        autoLoad: this.props.autoLoad,
         type: "equirectangular",
         draggableHotSpot: this.props.draggable,
         sceneFadeDuration: this.props.fadeDuration,
@@ -264,6 +266,10 @@ class MetaTour extends React.PureComponent {
     myPanorama.zoomOut();
   }
 
+  static load() {
+    myPanorama.load();
+  }
+
   render() {
     const { loading, container } = this.state;
     const loadingStyle = {
@@ -286,7 +292,7 @@ class Compass extends PureComponent {
     this.state = {
       scene: {},
     };
-    this.onPreviousCoordinates = this.onPreviousCoordinates.bind(this);
+    this.prevCoords = this.prevCoords.bind(this);
   }
 
   componentDidMount() {
@@ -306,24 +312,18 @@ class Compass extends PureComponent {
     }
   }
 
-  onPreviousCoordinates() {
+  prevCoords() {
     const { scene } = this.state;
-    const pitch = scene.pitch || 0;
-    const hfov = scene.hfov || 120;
     const yaw = scene.yaw || 0;
-    myPanorama.stopOrientation();
+    const hfov = scene.hfov || 120;
+    const pitch = scene.pitch || 0;
     myPanorama.lookAt(pitch, yaw, hfov);
-    this.props.onClick && this.props.onClick();
   }
 
   render() {
     const { scene } = this.state;
     return scene && scene.compass ? (
-      <div
-        onClick={this.onPreviousCoordinates}
-        className="mt-compass"
-        id="compass_icon"
-      >
+      <div onClick={this.prevCoords} className="mt-compass" id="compass_icon">
         <i className="icon-compass"></i>
       </div>
     ) : null;

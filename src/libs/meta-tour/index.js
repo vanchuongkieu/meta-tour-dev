@@ -1,6 +1,7 @@
 import MetaTour from "./elements/MetaTour";
 import MetaMap from "./elements/MetaMap";
 
+const load = MetaTour.load;
 const Scene = MetaTour.Scene;
 const zoomIn = MetaTour.zoomIn;
 const zoomOut = MetaTour.zoomOut;
@@ -13,6 +14,7 @@ const isOrientationActive = MetaTour.isOrientationActive;
 const isOrientationSupported = MetaTour.isOrientationSupported;
 
 export {
+  load,
   loadScene,
   zoomIn,
   zoomOut,

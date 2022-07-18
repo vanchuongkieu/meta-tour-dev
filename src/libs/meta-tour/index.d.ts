@@ -13,6 +13,7 @@ export interface MetaTourPropsType {
   yaw?: number;
   hfov?: number;
   pitch?: number;
+  autoLoad?: boolean;
   draggable?: boolean;
   fadeDuration?: number;
   children?: React.ReactNode;
@@ -68,7 +69,6 @@ export interface MetaTourHotSpotPropsType {
 
 export interface CompassPropsType {
   room: string;
-  onClick?: Function;
 }
 
 export interface MetaMapPropsType {
@@ -88,6 +88,7 @@ function loadScene(
   targetHfov?: string
 ): void;
 
+function load(): void;
 function zoomIn(): void;
 function zoomOut(): void;
 function startOrientation(): void;
@@ -103,6 +104,7 @@ namespace MetaTour {
 }
 
 export {
+  load,
   Scene,
   Compass,
   zoomIn,

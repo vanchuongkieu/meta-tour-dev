@@ -83,7 +83,7 @@ class MetaMap extends PureComponent {
 
   render() {
     const { style } = this.props;
-    const { container, isOrienSupported } = this.state;
+    const { container } = this.state;
 
     return <div id={container} style={style}></div>;
   }

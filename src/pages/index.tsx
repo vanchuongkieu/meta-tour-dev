@@ -1,8 +1,6 @@
 import MetaTour, {
   Scene,
-  zoomIn,
   MetaMap,
-  zoomOut,
   Compass,
   toggleFullscreen,
   MetaTourScenePropsType,
@@ -11,6 +9,7 @@ import MetaTour, {
   isOrientationActive,
   isOrientationSupported,
   ProgressType,
+  load,
 } from "@/libs/meta-tour";
 import type { NextPage } from "next";
 import { useEffect, useState } from "react";
@@ -163,24 +162,12 @@ const panorams: MetaTourScenePropsType[] = [
   },
 ];
 
-const mapData = {
-  map_image:
-    "https://res.cloudinary.com/lavana/image/upload/v1658087117/panoramas/map_1645629910368_vjlbff.png",
-};
-
 const Home: NextPage = () => {
   const [idRoom, setIdRoom] = useState<string>("");
   const [isShowMap, setShowMap] = useState<boolean>(true);
-  const [isLoading, setLoading] = useState<boolean>(true);
-  const [progress, setProgress] = useState<ProgressType>({
-    percent: 0,
-    timeload: 0,
-  });
+  const [isPlayed, setPlayed] = useState<boolean>(false);
   const [isOrientation, setOrientation] = useState<boolean>(false);
   const [isOrienSupported, setOrienSupported] = useState<boolean>(false);
-  // const [hfov, setHfov] = useState<number>(120);
-  // const [pitch, setPitch] = useState<number>(0);
-  // const [yaw, setYaw] = useState<number>(0);
 
   useEffect(() => {
     setOrienSupported(isOrientationSupported());
@@ -188,18 +175,14 @@ const Home: NextPage = () => {
     setShowMap(!isOrientationActive());
   }, []);
 
-  useEffect(() => {
-    const msTime = progress.timeload < 2000 ? 2000 : progress.timeload;
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, msTime);
-
-    return () => clearTimeout(timer);
-  }, [progress]);
-
   const handleOrientation = () => {
     setOrientation(!isOrientation);
     isOrientation ? stopOrientation() : startOrientation();
+  };
+
+  const startTour = () => {
+    setPlayed(true);
+    load();
   };
 
   return (
@@ -210,25 +193,15 @@ const Home: NextPage = () => {
         height: "100vh",
       }}
     >
-      <div
-        className="mt-loading-img"
-        style={{
-          opacity: isLoading ? 1 : 0,
-          visibility: isLoading ? "visible" : "hidden",
-          backgroundImage: "url('https://ap.poly.edu.vn/images/Banner-AP.png')",
-        }}
-      />
       <MetaTour
         loadDone={setIdRoom}
-        onProgress={setProgress}
         onEventDown={({ orientation }) => setOrientation(orientation)}
       >
         {panorams.map((panoram) => (
           <Scene {...panoram} key={panoram._id} />
         ))}
       </MetaTour>
-      <MetaMap style={{ opacity: isShowMap && idRoom ? 1 : 0 }} />
-
+      <MetaMap style={{ height: isShowMap && idRoom ? "auto" : 0 }} />
       <div
         style={{
           position: "absolute",
@@ -237,7 +210,7 @@ const Home: NextPage = () => {
           width: "auto",
         }}
       >
-        <Compass room={idRoom} onClick={() => setOrientation(false)} />
+        <Compass room={idRoom} />
       </div>
       <div
         style={{
@@ -246,79 +219,24 @@ const Home: NextPage = () => {
           right: 10,
           zIndex: 12,
           display: "flex",
-          opacity: idRoom ? 1 : 0,
           transition: "all .5s ease-in",
         }}
       >
-        <button onClick={zoomIn}>Zoom In</button>
-        <button onClick={zoomOut}>Zoom Out</button>
-        <button onClick={() => setShowMap(!isShowMap)}>Map</button>
-        {isOrienSupported ? (
-          <button onClick={handleOrientation}>
-            {isOrientation ? "STOP" : "START"}
-          </button>
-        ) : (
-          <button onClick={toggleFullscreen}>Fullscreen</button>
+        {!isPlayed && <button onClick={startTour}>Play</button>}
+        {idRoom && (
+          <>
+            <button onClick={() => setShowMap(!isShowMap)}>Map</button>
+            {isOrienSupported ? (
+              <button onClick={handleOrientation}>
+                {isOrientation ? "STOP" : "START"}
+              </button>
+            ) : (
+              isPlayed && <button onClick={toggleFullscreen}>Fullscreen</button>
+            )}
+          </>
         )}
       </div>
     </div>
-    // <div>
-    //   <MetaTour
-    //     yaw={yaw}
-    //     hfov={hfov}
-    //     pitch={pitch}
-    //     onYaw={setYaw}
-    //     onHfov={setHfov}
-    //     onPitch={setPitch}
-    //     onLoad={console.log}
-    //     onHotSpotDrag={console.log}
-    //     onHotSpotClick={console.log}
-    //   >
-    //     {panorams.map((panoram) => (
-    //       <MetaTour.Scene {...panoram} key={panoram._id} />
-    //     ))}
-    //   </MetaTour>
-    //   <div className="box">
-    //     <div>
-    //       <div>
-    //         <strong>HFOV: </strong> {hfov}
-    //       </div>
-    //       <input
-    //         type="range"
-    //         min={50}
-    //         max={120}
-    //         value={hfov}
-    //         onChange={(e) => setHfov(parseInt(e.target.value))}
-    //       />
-    //     </div>
-    //     <div>
-    //       <div>
-    //         <strong>PITCH: </strong> {pitch.toFixed(0)}
-    //       </div>
-    //       <input
-    //         type="range"
-    //         min={-57}
-    //         max={57}
-    //         value={pitch}
-    //         step={Math.PI / 180 / 90}
-    //         onChange={(e) => setPitch(Number(e.target.value))}
-    //       />
-    //     </div>
-    //     <div>
-    //       <div>
-    //         <strong>YAW: </strong> {yaw.toFixed(0)}
-    //       </div>
-    //       <input
-    //         type="range"
-    //         min={-180}
-    //         max={65}
-    //         value={yaw}
-    //         step={Math.PI / 180 / 90}
-    //         onChange={(e) => setYaw(Number(e.target.value))}
-    //       />
-    //     </div>
-    //   </div>
-    // </div>
   );
 };
 

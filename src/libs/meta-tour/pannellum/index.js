@@ -1,12 +1,12 @@
 /* eslint-disable */
 import utils from "@/utils";
-import libpannellum from "./libpannellum";
+import $renderer from "./renderer";
 export default (function (window, document, undefined) {
   function Viewer(container, initialConfig) {
     var _this = this;
     var config,
       renderer,
-      preview,
+      compass_icon,
       draggingHotSpot,
       isUserInteracting = false,
       latestInteraction = Date.now(),
@@ -63,7 +63,7 @@ export default (function (window, document, undefined) {
       doubleClickZoom: true,
       keyboardZoom: true,
       mouseZoom: true,
-      autoLoad: true,
+      autoLoad: false,
       orientationOnByDefault: false,
       hotSpotDebug: false,
       backgroundColor: [0, 0, 0],
@@ -80,9 +80,6 @@ export default (function (window, document, undefined) {
       friction: 0.15,
     };
     defaultConfig.uiText = {
-      loadButtonLabel: "Bấm để tải <br/> toàn cảnh",
-      loadingLabel: "Đang tải...",
-      bylineLabel: "bởi %s",
       noPanoramaError: "Không có hình ảnh nào được chỉ định.",
       fileAccessError: "Không thể truy cập %s.",
       malformedURLError: "Đã xảy ra sự cố với đường dẫn ảnh.",
@@ -104,23 +101,22 @@ export default (function (window, document, undefined) {
       typeof container === "string"
         ? document.getElementById(container)
         : container;
-    container.classList.add("pnlm-container");
+    container.classList.add("mt-container");
     container.tabIndex = 0;
     document.addEventListener("contextmenu", (e) => {
       e.preventDefault();
     });
     var uiContainer = document.createElement("div");
-    uiContainer.className = "pnlm-ui";
+    uiContainer.className = "mt-ui";
     container.appendChild(uiContainer);
     var renderContainer = document.createElement("div");
-    renderContainer.className = "pnlm-render-container";
+    renderContainer.className = "mt-render-container";
     container.appendChild(renderContainer);
     var dragFix = document.createElement("div");
-    dragFix.className = "pnlm-dragfix";
+    dragFix.className = "mt-dragfix";
     uiContainer.appendChild(dragFix);
     var hotSpotDebugIndicator = document.createElement("div");
-    hotSpotDebugIndicator.className =
-      "pnlm-sprite pnlm-hot-spot-debug-indicator";
+    hotSpotDebugIndicator.className = "mt-sprite mt-hot-spot-debug-indicator";
     uiContainer.appendChild(hotSpotDebugIndicator);
     var orientationSupport = false;
     if (utils.isMobileOrIOS) {
@@ -133,7 +129,8 @@ export default (function (window, document, undefined) {
     } else {
       mergeConfig(null);
     }
-    processOptions(true);
+    processOptions();
+
     function init() {
       var div = document.createElement("div");
       div.innerHTML = "<!--[if lte IE 9]><i></i><![endif]-->";
@@ -263,8 +260,8 @@ export default (function (window, document, undefined) {
           xhr.send();
         }
       }
-      if (config.draggable) uiContainer.classList.add("pnlm-grab");
-      uiContainer.classList.remove("pnlm-grabbing");
+      if (config.draggable) uiContainer.classList.add("mt-grab");
+      uiContainer.classList.remove("mt-grabbing");
       update = config.dynamicUpdate === true;
       if (config.dynamic && update) {
         panoImage = config.image;
@@ -279,7 +276,7 @@ export default (function (window, document, undefined) {
       );
     }
     function onImageLoad() {
-      if (!renderer) renderer = new libpannellum.renderer(renderContainer);
+      if (!renderer) renderer = new $renderer.renderer(renderContainer);
 
       // Only add event listeners once
       if (!listenersAdded) {
@@ -499,8 +496,8 @@ export default (function (window, document, undefined) {
       onPointerDownPointerY = pos.y;
       onPointerDownYaw = config.yaw;
       onPointerDownPitch = config.pitch;
-      uiContainer.classList.add("pnlm-grabbing");
-      uiContainer.classList.remove("pnlm-grab");
+      uiContainer.classList.add("mt-grabbing");
+      uiContainer.classList.remove("mt-grab");
       fireEvent("mousedown", event);
       animateInit();
     }
@@ -514,8 +511,8 @@ export default (function (window, document, undefined) {
         // Ngăn hiện tượng nhảy khi người dùng di chuyển nhanh chuột, dừng, sau đó thả nút chuột
         speed.pitch = speed.yaw = 0;
       }
-      uiContainer.classList.add("pnlm-grab");
-      uiContainer.classList.remove("pnlm-grabbing");
+      uiContainer.classList.add("mt-grab");
+      uiContainer.classList.remove("mt-grabbing");
       latestInteraction = Date.now();
       fireEvent("mouseup", event);
     }
@@ -1034,15 +1031,11 @@ export default (function (window, document, undefined) {
         speed.pitch =
           speed.pitch * 0.8 + ((config.pitch - prevPitch) / diff) * 0.2;
         speed.hfov = speed.hfov * 0.8 + ((config.hfov - prevZoom) / diff) * 0.2;
-
-        // Limit speed
         var maxSpeed = config.autoRotate ? Math.abs(config.autoRotate) : 5;
         speed.yaw = Math.min(maxSpeed, Math.max(speed.yaw, -maxSpeed));
         speed.pitch = Math.min(maxSpeed, Math.max(speed.pitch, -maxSpeed));
         speed.hfov = Math.min(maxSpeed, Math.max(speed.hfov, -maxSpeed));
       }
-
-      // Stop movement if opposite controls are pressed
       if (keysDown[0] && keysDown[1]) {
         speed.hfov = 0;
       }
@@ -1156,23 +1149,16 @@ export default (function (window, document, undefined) {
     }
     function render() {
       var tmpyaw;
-
       if (loaded) {
         var canvas = renderer.getCanvas();
-
         if (config.autoRotate !== false) {
-          // When auto-rotating this check needs to happen first (see issue #764)
           if (config.yaw > 180) {
             config.yaw -= 360;
           } else if (config.yaw < -180) {
             config.yaw += 360;
           }
         }
-
-        // Keep a tmp value of yaw for autoRotate comparison later
         tmpyaw = config.yaw;
-
-        // Optionally avoid showing background (empty space) on left or right by adapting min/max yaw
         var hoffcut = 0;
         if (config.avoidShowingBackground) {
           var hfov2 = config.hfov / 2,
@@ -1194,8 +1180,6 @@ export default (function (window, document, undefined) {
                 ));
           }
         }
-
-        // Ensure the yaw is within min and max allowed
         var yawRange = config.maxYaw - config.minYaw,
           minYaw = -180,
           maxYaw = 180;
@@ -1203,34 +1187,25 @@ export default (function (window, document, undefined) {
           minYaw = config.minYaw + config.hfov / 2 + hoffcut;
           maxYaw = config.maxYaw - config.hfov / 2 - hoffcut;
           if (yawRange < config.hfov) {
-            // Lock yaw to average of min and max yaw when both can be seen at once
             minYaw = maxYaw = (minYaw + maxYaw) / 2;
           }
           config.yaw = Math.max(minYaw, Math.min(maxYaw, config.yaw));
         }
 
         if (!(config.autoRotate !== false)) {
-          // When not auto-rotating, this check needs to happen after the
-          // previous check (see issue #698)
           if (config.yaw > 180) {
             config.yaw -= 360;
           } else if (config.yaw < -180) {
             config.yaw += 360;
           }
         }
-
-        // Check if we autoRotate in a limited by min and max yaw
-        // If so reverse direction
         if (
           config.autoRotate !== false &&
           tmpyaw != config.yaw &&
           prevTime !== undefined
         ) {
-          // this condition prevents changing the direction initially
           config.autoRotate *= -1;
         }
-
-        // Ensure the calculated pitch is within min and max allowed
         var vfov =
           ((2 *
             Math.atan(
@@ -1243,7 +1218,6 @@ export default (function (window, document, undefined) {
           maxPitch = config.maxPitch - vfov / 2;
         var pitchRange = config.maxPitch - config.minPitch;
         if (pitchRange < vfov) {
-          // Lock pitch to average of min and max pitch when both can be seen at once
           minPitch = maxPitch = (minPitch + maxPitch) / 2;
         }
         if (isNaN(minPitch)) minPitch = -90;
@@ -1258,10 +1232,9 @@ export default (function (window, document, undefined) {
         );
 
         renderHotSpots();
-
         if (config.compass) {
           try {
-            var compass_icon = document.getElementById("compass_icon");
+            compass_icon = document.getElementById("compass_icon");
             compass_icon.style.transform =
               "rotate(" + (-config.yaw - config.northOffset) + "deg)";
             compass_icon.style.webkitTransform =
@@ -1324,13 +1297,10 @@ export default (function (window, document, undefined) {
       );
     }
     function computeQuaternion(alpha, beta, gamma) {
-      // Convert Tait-Bryan angles to quaternion
       var quaternion = taitBryanToQuaternion(alpha, beta, gamma);
-      // Apply world transform
       quaternion = quaternion.multiply(
         new Quaternion(Math.sqrt(0.5), -Math.sqrt(0.5), 0, 0)
       );
-      // Apply screen transform
       var angle = window.orientation
         ? (-window.orientation * Math.PI) / 180 / 2
         : 0;
@@ -1352,7 +1322,6 @@ export default (function (window, document, undefined) {
         config.roll = (-q[1] / Math.PI) * 180;
         config.yaw = (-q[2] / Math.PI) * 180 + orientationYawOffset;
       }
-
       fireEvent("vrmove", e);
     }
     function renderInit() {
@@ -1375,13 +1344,9 @@ export default (function (window, document, undefined) {
           params
         );
         if (config.dynamic !== true) {
-          // Allow image to be garbage collected
           panoImage = undefined;
         }
       } catch (event) {
-        // Panorama not loaded
-
-        // Display error if there is a bad texture
         if (event.type === "webgl error" || event.type === "no webgl") {
           anError();
         } else if (event.type === "webgl size error") {
@@ -1422,14 +1387,9 @@ export default (function (window, document, undefined) {
             el.parentNode.style.opacity = 1;
           } else {
             el.style.display = "none";
-            el.parentNode.style.opacity = 0.2;
+            el.parentNode.style.opacity = 0.3;
           }
         });
-      }
-
-      if (preview !== undefined) {
-        renderContainer.removeChild(preview);
-        preview = undefined;
       }
 
       loaded = true;
@@ -1449,7 +1409,7 @@ export default (function (window, document, undefined) {
       hs.yaw = Number(hs.yaw) || 0;
 
       var div = document.createElement("div");
-      div.className = "pnlm-hotspot-base";
+      div.className = "mt-hotspot-base";
       div.id = "hotspot-maker-" + hs._id;
 
       var hotspotMaker = document.createElement("div");
@@ -1503,9 +1463,7 @@ export default (function (window, document, undefined) {
 
       if (hs.cssClass) div.className += " " + hs.cssClass;
       else if (config.cssMaker) div.className += " " + config.cssMaker;
-      else
-        div.className +=
-          " pnlm-hotspot pnlm-sprite pnlm-" + escapeHTML(hs.type);
+      else div.className += " mt-hotspot mt-sprite mt-" + escapeHTML(hs.type);
 
       var span = document.createElement("div");
       span.className = "hotspot-maker-tooltip";
@@ -1548,8 +1506,8 @@ export default (function (window, document, undefined) {
           a.target = "_blank";
         }
         renderContainer.appendChild(a);
-        div.className += " pnlm-pointer";
-        span.className += " pnlm-pointer";
+        div.className += " mt-pointer";
+        span.className += " mt-pointer";
         a.appendChild(div);
       } else {
         if (hs.sceneId) {
@@ -1565,15 +1523,15 @@ export default (function (window, document, undefined) {
             }
             return false;
           };
-          div.className += " pnlm-pointer";
-          span.className += " pnlm-pointer";
+          div.className += " mt-pointer";
+          span.className += " mt-pointer";
         }
         renderContainer.appendChild(div);
       }
       if (hs.createTooltipFunc) {
         hs.createTooltipFunc(div, hs.createTooltipArgs);
       } else if (hs.text || hs.video || hs.image) {
-        div.classList.add("pnlm-tooltip");
+        div.classList.add("mt-tooltip");
         if (!config.draggableHotSpot) {
           div.appendChild(span);
         }
@@ -1596,20 +1554,20 @@ export default (function (window, document, undefined) {
           hs.clickHandlerFunc(hs, hs.clickHandlerArgs);
         }
         div.addEventListener("click", handleClicked, "false");
-        div.className += " pnlm-pointer";
-        span.className += " pnlm-pointer";
+        div.className += " mt-pointer";
+        span.className += " mt-pointer";
       }
       if (config.draggableHotSpot) {
-        hotspotMaker.classList.add("pnlm-grab");
-        hotspotMaker.classList.remove("pnlm-pointer");
+        hotspotMaker.classList.add("mt-grab");
+        hotspotMaker.classList.remove("mt-pointer");
         div.addEventListener("mousedown", function (e) {
-          hotspotMaker.classList.add("pnlm-grabbing");
+          hotspotMaker.classList.add("mt-grabbing");
           if (hs.dragHandlerFunc) hs.dragHandlerFunc(hs, hs.dragHandlerArgs);
           draggingHotSpot = hs;
         });
 
         div.addEventListener("mouseup", function (e) {
-          hotspotMaker.classList.remove("pnlm-grabbing");
+          hotspotMaker.classList.remove("mt-grabbing");
           const [pitch, yaw] = mouseEventToCoords(e);
           _this.setPitch(pitch);
           _this.setYaw(yaw);
@@ -1624,24 +1582,24 @@ export default (function (window, document, undefined) {
           document.documentElement.style.touchAction === ""
         ) {
           div.addEventListener("pointerdown", function (e) {
-            hotspotMaker.classList.add("pnlm-grabbing");
+            hotspotMaker.classList.add("mt-grabbing");
             if (hs.dragHandlerFunc) hs.dragHandlerFunc(hs, hs.dragHandlerArgs);
             draggingHotSpot = hs;
           });
         }
 
         div.addEventListener("touchmove", function (e) {
-          hotspotMaker.classList.add("pnlm-grabbing");
+          hotspotMaker.classList.add("mt-grabbing");
           moveHotSpot(hs, e.targetTouches[0]);
         });
         div.addEventListener("touchend", function (e) {
-          hotspotMaker.classList.remove("pnlm-grabbing");
+          hotspotMaker.classList.remove("mt-grabbing");
           if (hs.dragHandlerFunc) hs.dragHandlerFunc(hs, hs.dragHandlerArgs);
           draggingHotSpot = null;
         });
       } else {
-        hotspotMaker.classList.remove("pnlm-grab");
-        hotspotMaker.classList.add("pnlm-pointer");
+        hotspotMaker.classList.remove("mt-grab");
+        hotspotMaker.classList.add("mt-pointer");
       }
 
       hs.div = div;
@@ -1835,19 +1793,8 @@ export default (function (window, document, undefined) {
         }
       }
     }
-    function processOptions(isPreview) {
-      isPreview = isPreview ? isPreview : false;
 
-      if (isPreview && "preview" in config) {
-        var p = config.preview;
-        if (config.basePath && !absoluteURL(p)) p = config.basePath + p;
-        preview = document.createElement("div");
-        preview.className = "pnlm-preview-img";
-        preview.style.backgroundImage = "url('" + sanitizeURLForCss(p) + "')";
-        renderContainer.appendChild(preview);
-      }
-
-      // Process other options
+    function processOptions() {
       for (var key in config) {
         if (config.hasOwnProperty(key)) {
           switch (key) {
@@ -1884,17 +1831,18 @@ export default (function (window, document, undefined) {
       }
     }
     function toggleFullscreen() {
+      var elem_body = document.getElementsByTagName("html")[0];
       if (loaded && !error) {
         if (!fullscreenActive) {
           try {
-            if (container.parentNode.parentNode.requestFullscreen) {
-              container.parentNode.parentNode.requestFullscreen();
-            } else if (container.parentNode.parentNode.mozRequestFullScreen) {
-              container.parentNode.parentNode.mozRequestFullScreen();
-            } else if (container.parentNode.parentNode.msRequestFullscreen) {
-              container.parentNode.parentNode.msRequestFullscreen();
+            if (elem_body.requestFullscreen) {
+              elem_body.requestFullscreen();
+            } else if (elem_body.mozRequestFullScreen) {
+              elem_body.mozRequestFullScreen();
+            } else if (elem_body.msRequestFullscreen) {
+              elem_body.msRequestFullscreen();
             } else {
-              container.parentNode.parentNode.webkitRequestFullScreen();
+              elem_body.webkitRequestFullScreen();
             }
           } catch (event) {}
         } else {
@@ -2003,7 +1951,7 @@ export default (function (window, document, undefined) {
         );
         if (data !== undefined) {
           fadeImg = new Image();
-          fadeImg.className = "pnlm-fade-img";
+          fadeImg.className = "mt-fade-img";
           fadeImg.style.transition =
             "opacity " + config.sceneFadeDuration / 1000 + "s";
           fadeImg.style.width = "100%";
@@ -2077,9 +2025,6 @@ export default (function (window, document, undefined) {
       }
       return url;
     }
-    function sanitizeURLForCss(url) {
-      return sanitizeURL(url).replace(/"/g, "%22").replace(/'/g, "%27");
-    }
     function startOrientation() {
       if (!orientationSupport) return;
       if (
@@ -2096,9 +2041,11 @@ export default (function (window, document, undefined) {
         orientation = 1;
         window.addEventListener("deviceorientation", orientationListener);
       }
+      if (compass_icon) compass_icon.style.pointerEvents = "none";
     }
     function stopOrientation() {
       window.removeEventListener("deviceorientation", orientationListener);
+      if (compass_icon) compass_icon.style.pointerEvents = "auto";
       orientation = false;
     }
     this.isLoaded = function () {
@@ -2312,6 +2259,10 @@ export default (function (window, document, undefined) {
       if (typeof callback === "function") callback(callbackArgs);
       return this;
     };
+    this.load = function () {
+      processOptions();
+      load();
+    };
     this.startAutoRotate = function (speed, pitch) {
       speed = speed || autoRotateSpeed || 1;
       pitch = pitch === undefined ? origPitch : pitch;
@@ -2499,7 +2450,7 @@ export default (function (window, document, undefined) {
         document.removeEventListener("mouseleave", onDocumentMouseUp, false);
       }
       container.innerHTML = "";
-      container.classList.remove("pnlm-container");
+      container.classList.remove("mt-container");
     };
   }
   return {
