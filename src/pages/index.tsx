@@ -10,6 +10,7 @@ import MetaTour, {
   stopOrientation,
   isOrientationActive,
   isOrientationSupported,
+  ProgressType,
 } from "@/libs/meta-tour";
 import type { NextPage } from "next";
 import { useEffect, useState } from "react";
@@ -169,8 +170,12 @@ const mapData = {
 
 const Home: NextPage = () => {
   const [idRoom, setIdRoom] = useState<string>("");
-  const [progress, setProgress] = useState<number>(0);
   const [isShowMap, setShowMap] = useState<boolean>(true);
+  const [isLoading, setLoading] = useState<boolean>(true);
+  const [progress, setProgress] = useState<ProgressType>({
+    percent: 0,
+    timeload: 0,
+  });
   const [isOrientation, setOrientation] = useState<boolean>(false);
   const [isOrienSupported, setOrienSupported] = useState<boolean>(false);
   // const [hfov, setHfov] = useState<number>(120);
@@ -180,7 +185,17 @@ const Home: NextPage = () => {
   useEffect(() => {
     setOrienSupported(isOrientationSupported());
     setOrientation(isOrientationActive());
+    setShowMap(!isOrientationActive());
   }, []);
+
+  useEffect(() => {
+    const msTime = progress.timeload < 2000 ? 2000 : progress.timeload;
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, msTime);
+
+    return () => clearTimeout(timer);
+  }, [progress]);
 
   const handleOrientation = () => {
     setOrientation(!isOrientation);
@@ -193,11 +208,18 @@ const Home: NextPage = () => {
         position: "relative",
       }}
     >
+      <div
+        className="mt-loading-img"
+        style={{
+          opacity: isLoading ? 1 : 0,
+          visibility: isLoading ? "visible" : "hidden",
+          backgroundImage: "url('https://ap.poly.edu.vn/images/Banner-AP.png')",
+        }}
+      />
       <MetaTour
-        onError={console.log}
         loadDone={setIdRoom}
+        onProgress={setProgress}
         onEventDown={({ orientation }) => setOrientation(orientation)}
-        onProgress={(percent) => setProgress(percent)}
       >
         {panorams.map((panoram) => (
           <Scene {...panoram} key={panoram._id} />

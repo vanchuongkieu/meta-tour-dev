@@ -1,6 +1,6 @@
 import utils from "@/utils";
 import React, { PureComponent } from "react";
-import pannellum from "../libraries/pannellum";
+import pannellum from "../pannellum";
 
 let myPanorama;
 
@@ -35,9 +35,9 @@ class MetaTour extends React.PureComponent {
     myPanorama.on("touchstart", () => this.onEventDown());
     myPanorama.on("mousedown", () => this.onEventDown());
     myPanorama.on("loadscene", () => this.setState({ loading: true }));
-    myPanorama.on("onprogress", (percent, timeLoaded) => {
+    myPanorama.on("onprogress", (percent, timeload) => {
       if (this.props.onProgress) {
-        this.props.onProgress(percent, timeLoaded);
+        this.props.onProgress({ percent, timeload });
       }
     });
   }

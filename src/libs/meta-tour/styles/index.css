@@ -1,4 +1,4 @@
-@import "../libraries/pannellum.css";
+@import "../pannellum/pannellum.css";
 
 :root {
   --main-color: red;
@@ -197,6 +197,16 @@
   100% {
     transform: var(--transform) scale(1);
   }
+}
+
+.mt-loading-img {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background-size: cover;
+  background-position: center;
+  z-index: 99999;
+  transition: all 0.5s ease-out;
 }
 
 .button-control {

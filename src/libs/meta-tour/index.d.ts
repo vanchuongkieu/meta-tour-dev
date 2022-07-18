@@ -1,7 +1,12 @@
-import pannellum from "./libraries/pannellum";
+import pannellum from "./pannellum";
 
 interface OnDownPropsType {
   orientation: boolean;
+}
+
+export interface ProgressType {
+  percent: number;
+  timeload: number;
 }
 
 export interface MetaTourPropsType {
@@ -17,7 +22,7 @@ export interface MetaTourPropsType {
   onError?: (message: string) => void;
   loadDone?: (id_room: string) => void;
   onEventDown?: (params: OnDownPropsType) => void;
-  onProgress?: (percent: number, time: number) => void;
+  onProgress?: (values: ProgressType) => void;
   onHotSpotDrag?: (hs: MetaTourHotSpotPropsType) => void;
   onHotSpotClick?: (hs: MetaTourHotSpotPropsType, values: any) => void;
 }

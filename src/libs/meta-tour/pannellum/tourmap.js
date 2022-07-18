@@ -1,3 +1,4 @@
+/* eslint-disable */
 export default (function () {
   function Map(container, initialConfig) {
     var _this = this;
@@ -130,7 +131,7 @@ export default (function () {
 
         if (pt.clickHandlerFunc) {
           function handleClicked() {
-            pt.clickHandlerFunc(pt, pt.clickHandlerArgs);
+            pt.clickHandlerFunc(pt, pt.id_room);
           }
           div.addEventListener("click", handleClicked, "false");
           div.className += " pnlm-pointer";

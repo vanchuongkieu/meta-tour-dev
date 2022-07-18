@@ -1,5 +1,5 @@
 import { PureComponent } from "react";
-import metatourmap from "../libraries/metatourmap";
+import metatourmap from "../pannellum/tourmap";
 import MetaTour from "./MetaTour";
 
 let myMetaMap;
@@ -39,7 +39,6 @@ class MetaMap extends PureComponent {
           left: 205,
           text: "Tooltip",
           clickHandlerFunc: this.clickHandler,
-          clickHandlerArgs: "scene1",
         },
         {
           _id: "2",
@@ -48,7 +47,6 @@ class MetaMap extends PureComponent {
           left: 115,
           text: "Tooltip",
           clickHandlerFunc: this.clickHandler,
-          clickHandlerArgs: "scene2",
         },
         {
           _id: "3",
@@ -57,7 +55,6 @@ class MetaMap extends PureComponent {
           left: 39,
           text: "Tooltip",
           clickHandlerFunc: this.clickHandler,
-          clickHandlerArgs: "scene2",
         },
         {
           _id: "4",
@@ -66,7 +63,6 @@ class MetaMap extends PureComponent {
           left: 107,
           text: "Tooltip",
           clickHandlerFunc: this.clickHandler,
-          clickHandlerArgs: "scene2",
         },
         {
           _id: "5",
@@ -75,7 +71,6 @@ class MetaMap extends PureComponent {
           left: 200,
           text: "Tooltip",
           clickHandlerFunc: this.clickHandler,
-          clickHandlerArgs: "scene2",
         },
       ],
     });
