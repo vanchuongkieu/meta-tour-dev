@@ -1,6 +1,7 @@
 import MetaTour, {
   Scene,
   zoomIn,
+  MetaMap,
   zoomOut,
   Compass,
   loadScene,
@@ -90,11 +91,17 @@ const panorams: MetaTourScenePropsType[] = [
   },
 ];
 
+const mapData = {
+  map_image:
+    "https://res.cloudinary.com/lavana/image/upload/v1658087117/panoramas/map_1645629910368_vjlbff.png",
+};
+
 const Home: NextPage = () => {
   const [idRoom, setIdRoom] = useState<string>("");
   const [progress, setProgress] = useState<number>(0);
-  const [isOrienSupported, setOrienSupported] = useState<boolean>(false);
+  const [isShowMap, setShowMap] = useState<boolean>(true);
   const [isOrientation, setOrientation] = useState<boolean>(false);
+  const [isOrienSupported, setOrienSupported] = useState<boolean>(false);
   // const [hfov, setHfov] = useState<number>(120);
   // const [pitch, setPitch] = useState<number>(0);
   // const [yaw, setYaw] = useState<number>(0);
@@ -112,6 +119,7 @@ const Home: NextPage = () => {
   return (
     <div>
       <MetaTour
+        onError={console.log}
         loadDone={setIdRoom}
         onEventDown={({ orientation }) => setOrientation(orientation)}
         onProgress={(percent) => setProgress(percent)}
@@ -120,14 +128,19 @@ const Home: NextPage = () => {
           <Scene {...panoram} key={panoram._id} />
         ))}
       </MetaTour>
+      <div style={{ opacity: isShowMap ? 1 : 0 }}>
+        <MetaMap />
+      </div>
       <div style={{ margin: 10 }}>
         <Compass room={idRoom} onClick={() => setOrientation(false)} />
       </div>
       <div style={{ position: "absolute", top: 50, left: 0, zIndex: 12 }}>
-        {isOrienSupported && (
+        {isOrienSupported ? (
           <button onClick={handleOrientation}>
             {isOrientation ? "STOP" : "START"}
           </button>
+        ) : (
+          <button onClick={toggleFullscreen}>Fullscreen</button>
         )}
         <br />
         <button onClick={() => loadScene("scene1")}>Room 1</button>
@@ -136,7 +149,7 @@ const Home: NextPage = () => {
         <button onClick={zoomIn}>Zoom In</button>
         <button onClick={zoomOut}>Zoom Out</button>
         <br />
-        <button onClick={toggleFullscreen}>Fullscreen</button>
+        <button onClick={() => setShowMap(!isShowMap)}>Map</button>
       </div>
     </div>
     // <div>

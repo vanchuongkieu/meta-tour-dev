@@ -1,4 +1,5 @@
 import MetaTour from "./elements/MetaTour";
+import MetaMap from "./elements/MetaMap";
 
 const Scene = MetaTour.Scene;
 const zoomIn = MetaTour.zoomIn;
@@ -16,6 +17,7 @@ export {
   zoomIn,
   zoomOut,
   Compass,
+  MetaMap,
   Scene,
   toggleFullscreen,
   startOrientation,

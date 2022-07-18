@@ -319,4 +319,97 @@
 
 .icon-compass:before {
   content: "\e902";
+  transform: rotate(40deg);
+}
+
+.mt-map-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+  border: 2px solid #fff;
+  opacity: none;
+  position: absolute;
+  z-index: 99;
+  background: #fff;
+  width: 300px;
+  height: 200px;
+  top: 20px;
+  right: 20px;
+}
+.mt-map-render-container,
+.mt-map-ui {
+  cursor: inherit;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
+.mt-map-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mt-pointer-base {
+  position: absolute;
+  min-width: 15px;
+  min-height: 15px;
+  border-radius: 50%;
+}
+
+.mt-pointer-base .pointer-tooltip {
+  position: absolute;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #000000;
+  text-align: center;
+  margin-left: -220px;
+  cursor: default;
+  font-size: 12px;
+  line-height: 1;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  text-transform: uppercase;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 250ms ease-in-out;
+}
+
+.mt-pointer-base .pointer-tooltip::after {
+  display: none;
+}
+
+.mt-pointer-base:hover .pointer-tooltip {
+  opacity: 1;
+}
+
+.pointer-maker-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 15px;
+  height: 15px;
+  opacity: 0.4;
+  border-radius: 50%;
+  background-color: var(--main-color);
+}
+
+.view_direction__arrow {
+  background: var(--main-color);
+  background: linear-gradient(
+    -45deg,
+    rgba(0, 97, 255, 0) 10%,
+    var(--main-color) 100%
+  );
+  border-radius: 0 0 30px;
+  display: none;
+  height: 24px;
+  width: 24px;
+  transform: rotate(-134deg);
+  position: absolute;
+  top: -22px;
+  left: -5px;
 }

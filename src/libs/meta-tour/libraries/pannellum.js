@@ -2,10 +2,6 @@
 import utils from "@/utils";
 import libpannellum from "./libpannellum";
 export default (function (window, document, undefined) {
-  /**
-   * @param {*} container
-   * @param {*} initialConfig
-   */
   function Viewer(container, initialConfig) {
     var _this = this;
     var config,
@@ -63,16 +59,12 @@ export default (function (window, document, undefined) {
       autoRotateStopDelay: 0,
       type: "equirectangular",
       northOffset: 0,
-      showFullscreenCtrl: true,
       dynamic: false,
       dynamicUpdate: false,
       doubleClickZoom: true,
       keyboardZoom: true,
       mouseZoom: true,
-      showZoomCtrl: true,
       autoLoad: true,
-      showControls: true,
-      customControls: false,
       orientationOnByDefault: false,
       hotSpotDebug: false,
       backgroundColor: [0, 0, 0],
@@ -87,6 +79,7 @@ export default (function (window, document, undefined) {
         16, 17, 27, 37, 38, 39, 40, 61, 65, 68, 83, 87, 107, 109, 173, 187, 189,
       ],
       friction: 0.15,
+      is_map_room: false,
     };
 
     defaultConfig.uiText = {
@@ -119,6 +112,11 @@ export default (function (window, document, undefined) {
     container.classList.add("pnlm-container");
     container.tabIndex = 0;
 
+    // Tắt sự kiện right click (contextmenu)
+    document.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+    });
+
     // Tạo vùng chứa cho ui
     var uiContainer = document.createElement("div");
     uiContainer.className = "pnlm-ui";
@@ -131,11 +129,6 @@ export default (function (window, document, undefined) {
     var dragFix = document.createElement("div");
     dragFix.className = "pnlm-dragfix";
     uiContainer.appendChild(dragFix);
-
-    // Tắt sự kiện right click (contextmenu)
-    document.addEventListener("contextmenu", (e) => {
-      e.preventDefault();
-    });
 
     var infoDisplay = {};
 
@@ -185,84 +178,9 @@ export default (function (window, document, undefined) {
     infoDisplay.errorMsg.className = "pnlm-error-msg pnlm-info-box";
     uiContainer.appendChild(infoDisplay.errorMsg);
 
-    // Create controls
-    var controls = {};
-    controls.container = document.createElement("div");
-    controls.container.className = "pnlm-controls-container";
-    uiContainer.appendChild(controls.container);
-
-    // Load Button
-    controls.load = document.createElement("div");
-    controls.load.className = "pnlm-load-button";
-    controls.load.addEventListener("click", function () {
-      processOptions();
-      load();
-    });
-    uiContainer.appendChild(controls.load);
-
-    // Zoom controls
-    controls.zoom = document.createElement("div");
-    controls.zoom.className = "pnlm-zoom-controls pnlm-controls";
-    controls.zoomIn = document.createElement("div");
-    controls.zoomIn.className = "pnlm-zoom-in pnlm-sprite pnlm-control";
-    controls.zoomIn.addEventListener("click", zoomIn);
-    controls.zoom.appendChild(controls.zoomIn);
-    controls.zoomOut = document.createElement("div");
-    controls.zoomOut.className = "pnlm-zoom-out pnlm-sprite pnlm-control";
-    controls.zoomOut.addEventListener("click", zoomOut);
-    controls.zoom.appendChild(controls.zoomOut);
-    controls.container.appendChild(controls.zoom);
-
-    // Fullscreen controls
-    controls.fullscreen = document.createElement("div");
-    controls.fullscreen.addEventListener("click", toggleFullscreen);
-
-    if (initialConfig.default.customControls) {
-      controls.fullscreen.className =
-        "button-control button-control-fullscreen";
-      controls.fullscreen.icon = document.createElement("i");
-      controls.fullscreen.icon.className = "fa fa-expand";
-      controls.fullscreen.appendChild(controls.fullscreen.icon);
-    } else {
-      controls.fullscreen.className =
-        "pnlm-fullscreen-toggle-button pnlm-sprite pnlm-fullscreen-toggle-button-inactive pnlm-controls pnlm-control";
-    }
-
-    if (
-      document.fullscreenEnabled ||
-      document.mozFullScreenEnabled ||
-      document.webkitFullscreenEnabled ||
-      document.msFullscreenEnabled
-    ) {
-      if (initialConfig.default.customControls) {
-        container.appendChild(controls.fullscreen);
-      } else {
-        controls.container.appendChild(controls.fullscreen);
-      }
-    }
-
-    controls.orientation = document.createElement("div");
-    controls.orientation.addEventListener("click", function () {
-      if (orientation) stopOrientation();
-      else startOrientation();
-    });
-    controls.orientation.addEventListener("mousedown", function (e) {
-      e.stopPropagation();
-    });
-    controls.orientation.addEventListener("touchstart", function (e) {
-      e.stopPropagation();
-    });
-    controls.orientation.addEventListener("pointerdown", function (e) {
-      e.stopPropagation();
-    });
-    controls.orientation.className =
-      "pnlm-orientation-button pnlm-orientation-button-inactive pnlm-sprite pnlm-controls pnlm-control";
     var orientationSupport = false;
 
     if (utils.isMobileOrIOS) {
-      if (!initialConfig.default.customControls) {
-        controls.container.appendChild(controls.orientation);
-      }
       orientationSupport = true;
     }
 
@@ -322,7 +240,6 @@ export default (function (window, document, undefined) {
           panoImage = new Image();
         }
       }
-      // Cấu hnhf tải hình ảnh
       if (config.type === "cubemap") {
         var itemsToLoad = 6;
         var onLoad = function () {
@@ -332,10 +249,7 @@ export default (function (window, document, undefined) {
           }
         };
         var onError = function (e) {
-          var a = document.createElement("a");
-          a.href = e.target.src;
-          a.innerHTML = a.href;
-          anError(config.uiText.fileAccessError.replace("%s", a.outerHTML));
+          anError(config.uiText.fileAccessError.replace("%s", e.target.src));
         };
         for (i = 0; i < panoImage.length; i++) {
           panoImage[i].onload = onLoad;
@@ -361,7 +275,6 @@ export default (function (window, document, undefined) {
           p = config.basePath;
         }
         if (config.dynamic !== true) {
-          // Ảnh tĩnh
           p = absoluteURL(config.image) ? config.image : p + config.image;
           panoImage.onload = function () {
             window.URL.revokeObjectURL(this.src);
@@ -370,11 +283,7 @@ export default (function (window, document, undefined) {
           var xhr = new XMLHttpRequest();
           xhr.onloadend = function () {
             if (xhr.status != 200) {
-              // Lỗi hiển thị khi không tải được hình ảnh
-              var a = document.createElement("a");
-              a.href = p;
-              a.textContent = a.href;
-              anError(config.uiText.fileAccessError.replace("%s", a.outerHTML));
+              anError(config.uiText.fileAccessError.replace("%s", p));
             }
             var img = this.response;
             if (img) {
@@ -432,7 +341,7 @@ export default (function (window, document, undefined) {
       uiContainer.classList.remove("pnlm-grabbing");
       update = config.dynamicUpdate === true;
       if (config.dynamic && update) {
-        panoImage = config.panorama;
+        panoImage = config.image;
         onImageLoad();
       }
     }
@@ -539,8 +448,6 @@ export default (function (window, document, undefined) {
         var start = img.indexOf("<x:xmpmeta");
         if (start > -1 && config.ignoreGPanoXMP !== true) {
           var xmpData = img.substring(start, img.indexOf("</x:xmpmeta>") + 12);
-
-          // Extract the requested tag from the XMP data
           var getTag = function (tag) {
             var result;
             if (xmpData.indexOf(tag + '="') >= 0) {
@@ -559,8 +466,6 @@ export default (function (window, document, undefined) {
             }
             return null;
           };
-
-          // Relevant XMP data
           var xmp = {
             fullWidth: getTag("GPano:FullPanoWidthPixels"),
             croppedWidth: getTag("GPano:CroppedAreaImageWidthPixels"),
@@ -571,7 +476,6 @@ export default (function (window, document, undefined) {
             horizonPitch: getTag("GPano:PosePitchDegrees"),
             horizonRoll: getTag("GPano:PoseRollDegrees"),
           };
-
           if (
             xmp.fullWidth !== null &&
             xmp.croppedWidth !== null &&
@@ -579,7 +483,6 @@ export default (function (window, document, undefined) {
             xmp.croppedHeight !== null &&
             xmp.topPixels !== null
           ) {
-            // Set up viewer using GPano XMP data
             if (specifiedPhotoSphereExcludes.indexOf("haov") < 0)
               config.haov = (xmp.croppedWidth / xmp.fullWidth) * 360;
             if (specifiedPhotoSphereExcludes.indexOf("vaov") < 0)
@@ -593,8 +496,8 @@ export default (function (window, document, undefined) {
               xmp.heading !== null &&
               specifiedPhotoSphereExcludes.indexOf("northOffset") < 0
             ) {
-              // TODO: make sure this works correctly for partial panoramas
               config.northOffset = xmp.heading;
+
               if (config.compass !== false) {
                 config.compass = true;
               }
@@ -605,12 +508,8 @@ export default (function (window, document, undefined) {
               if (specifiedPhotoSphereExcludes.indexOf("horizonRoll") < 0)
                 config.horizonRoll = xmp.horizonRoll;
             }
-
-            // TODO: add support for initial view settings
           }
         }
-
-        // Load panorama
         panoImage.src = window.URL.createObjectURL(image);
       });
       if (reader.readAsBinaryString !== undefined) {
@@ -619,14 +518,9 @@ export default (function (window, document, undefined) {
         reader.readAsText(image);
       }
     }
-
-    /**
-     * @param {*} errorMsg
-     */
     function anError(errorMsg) {
       if (errorMsg === undefined) errorMsg = config.uiText.genericWebGLError;
       infoDisplay.errorMsg.innerHTML = "<p>" + errorMsg + "</p>";
-      controls.load.style.display = "none";
       infoDisplay.load.box.style.display = "none";
       infoDisplay.errorMsg.style.display = "none";
       error = true;
@@ -634,7 +528,6 @@ export default (function (window, document, undefined) {
       renderContainer.style.display = "none";
       fireEvent("error", errorMsg);
     }
-
     function clearError() {
       if (error) {
         infoDisplay.load.box.style.display = "none";
@@ -1064,7 +957,6 @@ export default (function (window, document, undefined) {
       // Change key
       changeKey(keynumber, false);
     }
-
     function changeKey(keynumber, value) {
       var keyChanged = false;
       switch (keynumber) {
@@ -1163,7 +1055,6 @@ export default (function (window, document, undefined) {
         animateInit();
       }
     }
-
     function keyRepeat() {
       // Only do something if the panorama is loaded
       if (!loaded) {
@@ -1325,7 +1216,6 @@ export default (function (window, document, undefined) {
         speed.yaw = 0;
       }
     }
-
     function animateMove(axis) {
       var t = animatedMove[axis];
       var normTime = Math.min(
@@ -1347,15 +1237,12 @@ export default (function (window, document, undefined) {
       }
       config[axis] = result;
     }
-
     function timingFunction(t) {
       return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
     }
-
     function onDocumentResize() {
       onFullScreenChange("resize");
     }
-
     function animateInit() {
       if (animating) {
         return;
@@ -1363,7 +1250,6 @@ export default (function (window, document, undefined) {
       animating = true;
       animate();
     }
-
     function animate() {
       if (destroyed) {
         return;
@@ -1430,7 +1316,6 @@ export default (function (window, document, undefined) {
         }
       }
     }
-
     function render() {
       var tmpyaw;
 
@@ -1543,18 +1428,25 @@ export default (function (window, document, undefined) {
               "rotate(" + (-config.yaw - config.northOffset) + "deg)";
             compass_icon.style.webkitTransform =
               "rotate(" + (-config.yaw - config.northOffset) + "deg)";
+
+            var map_compass = document.getElementById(
+              "pointer-" + config.scene
+            );
+            var degree = config.northOffset + 0 - 90;
+            map_compass.style.transform =
+              "rotate(" + (config.yaw + degree) + "deg)";
+            map_compass.style.webkitTransform =
+              "rotate(" + (config.yaw + degree) + "deg)";
           } catch (e) {}
         }
       }
     }
-
     function Quaternion(w, x, y, z) {
       this.w = w;
       this.x = x;
       this.y = y;
       this.z = z;
     }
-
     Quaternion.prototype.multiply = function (q) {
       return new Quaternion(
         this.w * q.w - this.x * q.x - this.y * q.y - this.z * q.z,
@@ -1563,7 +1455,6 @@ export default (function (window, document, undefined) {
         this.z * q.w + this.w * q.z + this.x * q.y - this.y * q.x
       );
     };
-
     Quaternion.prototype.toEulerAngles = function () {
       var phi = Math.atan2(
           2 * (this.w * this.x + this.y * this.z),
@@ -1576,7 +1467,6 @@ export default (function (window, document, undefined) {
         );
       return [phi, theta, psi];
     };
-
     function taitBryanToQuaternion(alpha, beta, gamma) {
       var r = [
         beta ? (beta * Math.PI) / 180 / 2 : 0,
@@ -1593,7 +1483,6 @@ export default (function (window, document, undefined) {
         c[0] * c[1] * s[2] + s[0] * s[1] * c[2]
       );
     }
-
     function computeQuaternion(alpha, beta, gamma) {
       // Convert Tait-Bryan angles to quaternion
       var quaternion = taitBryanToQuaternion(alpha, beta, gamma);
@@ -1609,7 +1498,6 @@ export default (function (window, document, undefined) {
         new Quaternion(Math.cos(angle), 0, -Math.sin(angle), 0)
       );
     }
-
     function orientationListener(e) {
       if (e.hasOwnProperty("requestPermission")) e.requestPermission();
       var q = computeQuaternion(e.alpha, e.beta, e.gamma).toEulerAngles();
@@ -1627,7 +1515,6 @@ export default (function (window, document, undefined) {
 
       fireEvent("vrmove", e);
     }
-
     function renderInit() {
       try {
         var params = {};
@@ -1669,7 +1556,6 @@ export default (function (window, document, undefined) {
         }
       }
     }
-
     function renderInitCallback() {
       // Fade if specified
       if (config.sceneFadeDuration && renderer.fadeImg !== undefined) {
@@ -1688,6 +1574,23 @@ export default (function (window, document, undefined) {
 
       // Hide loading display
       infoDisplay.load.box.style.display = "none";
+
+      var show_dire_pointer = document.getElementsByClassName(
+        "view_direction__arrow"
+      );
+
+      document.getElementById("map-container").style.opacity = "block";
+
+      Array.prototype.forEach.call(show_dire_pointer, function (el) {
+        if (el.parentNode.id == "pointer-" + config.scene) {
+          el.style.display = "block";
+          el.parentNode.style.opacity = 1;
+        } else {
+          el.style.display = "none";
+          el.parentNode.style.opacity = 0.2;
+        }
+      });
+
       if (preview !== undefined) {
         renderContainer.removeChild(preview);
         preview = undefined;
@@ -1699,7 +1602,6 @@ export default (function (window, document, undefined) {
 
       fireEvent("load");
     }
-
     function createHotSpot(hs) {
       // Make sure hot spot pitch and yaw are numbers
       hs.transform.rotate = Number(hs.transform.rotate) || 0;
@@ -1814,25 +1716,15 @@ export default (function (window, document, undefined) {
         span.className += " pnlm-pointer";
         a.appendChild(div);
       } else {
-        if (!config.draggableHotSpot && hs.sceneId) {
+        if (hs.sceneId) {
           div.onclick = div.ontouchend = function () {
-            var timeAnimated = 500;
             if (!div.clicked) {
               div.clicked = true;
-              _this.lookAt(
-                hs.pitch,
-                hs.yaw,
-                config.hfov - 20,
-                timeAnimated,
-                () => {
-                  console.log(hs, config);
-                  loadScene(
-                    hs.sceneId,
-                    hs.targetPitch,
-                    hs.targetYaw,
-                    hs.targetHfov
-                  );
-                }
+              loadScene(
+                hs.sceneId,
+                hs.targetPitch,
+                hs.targetYaw,
+                hs.targetHfov
               );
             }
             return false;
@@ -1919,7 +1811,6 @@ export default (function (window, document, undefined) {
       hs.div = div;
       hs.hotspotMaker = hotspotMaker;
     }
-
     function createHotSpots() {
       if (hotspotsCreated) return;
 
@@ -1935,11 +1826,6 @@ export default (function (window, document, undefined) {
       hotspotsCreated = true;
       renderHotSpots();
     }
-
-    /**
-     * Xuất các hotspots
-     * @param {*} hs
-     */
     function renderHotSpot(hs) {
       var hsPitchSin = Math.sin((hs.pitch * Math.PI) / 180),
         hsPitchCos = Math.cos((hs.pitch * Math.PI) / 180),
@@ -2001,11 +1887,9 @@ export default (function (window, document, undefined) {
         hs.div.style.transform = transform;
       }
     }
-
     function renderHotSpots() {
       config.hotSpots.forEach(renderHotSpot);
     }
-
     function destroyHotSpots() {
       var hs = config.hotSpots;
       hotspotsCreated = false;
@@ -2026,14 +1910,12 @@ export default (function (window, document, undefined) {
         }
       }
     }
-
     function moveHotSpot(hs, event) {
       var coords = mouseEventToCoords(event);
       hs.pitch = coords[0];
       hs.yaw = coords[1];
       renderHotSpot(hs);
     }
-
     function mergeConfig(sceneId) {
       config = {};
       var k, s;
@@ -2117,7 +1999,6 @@ export default (function (window, document, undefined) {
         }
       }
     }
-
     function processOptions(isPreview) {
       isPreview = isPreview ? isPreview : false;
 
@@ -2158,7 +2039,6 @@ export default (function (window, document, undefined) {
         infoDisplay.container.style.display = "none";
 
       // Fill in load button label and loading box text
-      controls.load.innerHTML = "<p>" + config.uiText.loadButtonLabel + "</p>";
       infoDisplay.load.boxp.innerHTML = config.uiText.loadingLabel;
 
       // Process other options
@@ -2211,56 +2091,13 @@ export default (function (window, document, undefined) {
               if (config[key] === true && renderer === undefined) {
                 // Show loading box
                 infoDisplay.load.box.style.display = "none";
-                // Hide load button
-                controls.load.style.display = "none";
-                // Initialize
                 init();
-              }
-              break;
-
-            case "showZoomCtrl":
-              if (config[key] && config.showControls != false) {
-                // Show zoom controls
-                controls.zoom.style.display = "block";
-              } else {
-                // Hide zoom controls
-                controls.zoom.style.display = "none";
-              }
-              break;
-
-            case "showFullscreenCtrl":
-              if (
-                config[key] &&
-                config.showControls != false &&
-                ("fullscreen" in document ||
-                  "mozFullScreen" in document ||
-                  "webkitIsFullScreen" in document ||
-                  "msFullscreenElement" in document)
-              ) {
-                // Show fullscreen control
-                controls.fullscreen.style.display = "block";
-              } else {
-                // Hide fullscreen control
-                controls.fullscreen.style.display = "none";
               }
               break;
 
             case "hotSpotDebug":
               if (config[key]) hotSpotDebugIndicator.style.display = "block";
               else hotSpotDebugIndicator.style.display = "none";
-              break;
-
-            case "showControls":
-              if (!config[key]) {
-                controls.orientation.style.display = "none";
-                controls.zoom.style.display = "none";
-                controls.fullscreen.style.display = "none";
-              }
-              break;
-            case "customControls":
-              if (config.customControls) {
-                controls.zoom.style.display = "none";
-              }
               break;
 
             case "orientationOnByDefault":
@@ -2282,14 +2119,9 @@ export default (function (window, document, undefined) {
         else delete config.author;
       }
     }
-
     function toggleFullscreen() {
       if (loaded && !error) {
         if (!fullscreenActive) {
-          if (config.customControls) {
-            controls.fullscreen.icon.classList.add("fa-compress");
-            controls.fullscreen.icon.classList.remove("fa-expand");
-          }
           try {
             if (container.parentNode.parentNode.requestFullscreen) {
               container.parentNode.parentNode.requestFullscreen();
@@ -2304,8 +2136,6 @@ export default (function (window, document, undefined) {
             // Fullscreen doesn't work
           }
         } else {
-          controls.fullscreen.icon.classList.add("fa-expand");
-          controls.fullscreen.icon.classList.remove("fa-compress");
           if (document.exitFullscreen) {
             document.exitFullscreen();
           } else if (document.mozCancelFullScreen) {
@@ -2318,7 +2148,6 @@ export default (function (window, document, undefined) {
         }
       }
     }
-
     function onFullScreenChange(resize) {
       if (
         document.fullscreenElement ||
@@ -2327,16 +2156,8 @@ export default (function (window, document, undefined) {
         document.webkitIsFullScreen ||
         document.msFullscreenElement
       ) {
-        if (!config.customControls) {
-          controls.fullscreen.classList.add(
-            "pnlm-fullscreen-toggle-button-active"
-          );
-        }
         fullscreenActive = true;
       } else {
-        controls.fullscreen.classList.remove(
-          "pnlm-fullscreen-toggle-button-active"
-        );
         fullscreenActive = false;
       }
       if (resize !== "resize") fireEvent("fullscreenchange", fullscreenActive);
@@ -2345,21 +2166,18 @@ export default (function (window, document, undefined) {
       setHfov(config.hfov);
       animateInit();
     }
-
     function zoomIn() {
       if (loaded) {
         setHfov(config.hfov - 5);
         animateInit();
       }
     }
-
     function zoomOut() {
       if (loaded) {
         setHfov(config.hfov + 5);
         animateInit();
       }
     }
-
     function constrainHfov(hfov) {
       // Keep field of view within bounds
       var minHfov = config.minHfov;
@@ -2399,27 +2217,21 @@ export default (function (window, document, undefined) {
       }
       return newHfov;
     }
-
     function setHfov(hfov) {
       config.hfov = constrainHfov(hfov);
       fireEvent("zoomchange", config.hfov);
     }
-
     function stopAnimation() {
       animatedMove = {};
       autoRotateSpeed = config.autoRotate ? config.autoRotate : autoRotateSpeed;
       config.autoRotate = false;
     }
-
     function load() {
       clearError();
       loaded = false;
-
-      controls.load.style.display = "none";
       infoDisplay.load.box.style.display = "none";
       init();
     }
-
     function loadScene(sceneId, targetPitch, targetYaw, targetHfov, fadeDone) {
       if (!loaded) fadeDone = true; // Don't try to fade when there isn't a scene loaded
       loaded = false;
@@ -2496,7 +2308,6 @@ export default (function (window, document, undefined) {
       fireEvent("scenechange", sceneId);
       load();
     }
-
     function escapeHTML(s) {
       if (!initialConfig.escapeHTML) return String(s).split("\n").join("<br>");
       return String(s)
@@ -2515,19 +2326,16 @@ export default (function (window, document, undefined) {
         .split("\n")
         .join("<br>"); // Allow line breaks
     }
-
     function sanitizeURL(url) {
+      console.log(url);
       if (url.trim().toLowerCase().indexOf("javascript:") === 0) {
         return "about:blank";
       }
       return url;
     }
-
     function sanitizeURLForCss(url) {
       return sanitizeURL(url).replace(/"/g, "%22").replace(/'/g, "%27");
     }
-
-    // trên mobile
     function startOrientation() {
       if (!orientationSupport) return;
       if (
@@ -2538,26 +2346,17 @@ export default (function (window, document, undefined) {
           if (response == "granted") {
             orientation = 1;
             window.addEventListener("deviceorientation", orientationListener);
-            controls.orientation.classList.add(
-              "pnlm-orientation-button-active"
-            );
           }
         });
       } else {
         orientation = 1;
         window.addEventListener("deviceorientation", orientationListener);
-        controls.orientation.classList.add("pnlm-orientation-button-active");
       }
     }
-
     function stopOrientation() {
       window.removeEventListener("deviceorientation", orientationListener);
-      controls.orientation.classList.remove("pnlm-orientation-button-active");
       orientation = false;
     }
-
-    // Public
-    // Lấy dữ liệu
     this.isLoaded = function () {
       return Boolean(loaded);
     };
@@ -2591,9 +2390,6 @@ export default (function (window, document, undefined) {
     this.getRenderer = function () {
       return renderer;
     };
-    this.getFullscreen = function () {
-      return !fullscreenActive;
-    };
     this.mouseEventToCoords = function (event) {
       return mouseEventToCoords(event);
     };
@@ -2622,8 +2418,6 @@ export default (function (window, document, undefined) {
     this.isOrientationActive = function () {
       return Boolean(orientation);
     };
-
-    // Sửa dữ liệu
     this.setPitch = function (pitch, animated, callback, callbackArgs) {
       latestInteraction = Date.now();
       if (Math.abs(pitch - config.pitch) <= eps) {
@@ -2745,11 +2539,6 @@ export default (function (window, document, undefined) {
       else animateInit();
       return this;
     };
-    this.setOrientation = function (bool) {
-      orientation = bool;
-    };
-
-    // hành động
     this.zoomIn = function () {
       zoomIn();
     };
@@ -2805,7 +2594,7 @@ export default (function (window, document, undefined) {
     };
     this.toggleFullscreen = function () {
       toggleFullscreen();
-      return this;
+      return !fullscreenActive;
     };
     this.addScene = function (sceneId, config) {
       initialConfig.scenes[sceneId] = config;
@@ -2896,39 +2685,32 @@ export default (function (window, document, undefined) {
     this.stopOrientation = function () {
       stopOrientation();
     };
-
-    // event listenner
     this.on = function (type, listener) {
       externalEventListeners[type] = externalEventListeners[type] || [];
       externalEventListeners[type].push(listener);
       return this;
     };
+
     this.off = function (type, listener) {
       if (!type) {
-        // Remove all listeners if type isn't specified
         externalEventListeners = {};
         return this;
       }
       if (listener) {
         var i = externalEventListeners[type].indexOf(listener);
         if (i >= 0) {
-          // Remove listener if found
           externalEventListeners[type].splice(i, 1);
         }
         if (externalEventListeners[type].length === 0) {
-          // Remove category if empty
           delete externalEventListeners[type];
         }
       } else {
-        // Remove category of listeners if listener isn't specified
         delete externalEventListeners[type];
       }
       return this;
     };
-
     function fireEvent(type) {
       if (type in externalEventListeners) {
-        // Reverse iteration is useful, if event listener is removed inside its definition
         for (var i = externalEventListeners[type].length; i > 0; i--) {
           externalEventListeners[type][
             externalEventListeners[type].length - i
@@ -2936,7 +2718,6 @@ export default (function (window, document, undefined) {
         }
       }
     }
-
     this.destroy = function () {
       destroyed = true;
       clearTimeout(autoRotateStart);
@@ -2979,13 +2760,7 @@ export default (function (window, document, undefined) {
       container.classList.remove("pnlm-container");
     };
   }
-
   return {
-    /**
-     * @param {*} container
-     * @param {*} config
-     * @returns
-     */
     viewer: function (container, config) {
       return new Viewer(container, config);
     },

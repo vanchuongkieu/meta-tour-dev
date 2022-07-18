@@ -10,11 +10,11 @@ export interface MetaTourPropsType {
   pitch?: number;
   draggable?: boolean;
   fadeDuration?: number;
-  fullscreenCtrl?: boolean;
   children?: React.ReactNode;
   onYaw?: (yaw: number) => void;
   onHfov?: (hfov: number) => void;
   onPitch?: (pitch: number) => void;
+  onError?: (message: string) => void;
   loadDone?: (id_room: string) => void;
   onEventDown?: (params: OnDownPropsType) => void;
   onProgress?: (percent: number, time: number) => void;
@@ -58,7 +58,7 @@ export interface MetaTourHotSpotPropsType {
   animation?: "pulse" | "bounce";
   type: "link" | "visit" | "click";
   transform?: MetaTourSceneTransformPropsType;
-  targetURL?: "_blank" | "_self" | "_parent" | "_top" | string;
+  targetURL?: "_blank" | "_self" | "_parent" | "_top";
 }
 
 export interface CompassPropsType {
@@ -83,10 +83,10 @@ function zoomIn(): void;
 function zoomOut(): void;
 function startOrientation(): void;
 function stopOrientation(): void;
-function toggleFullscreen(): void;
+function toggleFullscreen(): boolean;
 function isOrientationActive(): boolean;
 function isOrientationSupported(): boolean;
-
+function MetaMap(): JSX.Element;
 function MetaTour(props: MetaTourPropsType): JSX.Element;
 
 namespace MetaTour {
@@ -98,6 +98,7 @@ export {
   Compass,
   zoomIn,
   zoomOut,
+  MetaMap,
   loadScene,
   toggleFullscreen,
   startOrientation,

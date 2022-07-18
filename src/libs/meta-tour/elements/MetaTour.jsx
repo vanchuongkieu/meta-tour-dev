@@ -22,24 +22,24 @@ class MetaTour extends React.PureComponent {
     pitch: 0,
     draggable: false,
     fadeDuration: 1500,
-    fullscreenCtrl: false,
   };
 
   componentDidMount() {
     this.renderPanorama("mount");
     myPanorama.on("load", () => this.onLoad());
     myPanorama.on("vrmove", () => this.onEventMove());
+    myPanorama.on("error", (msg) => this.onError(msg));
     myPanorama.on("mousemove", () => this.onEventMove());
     myPanorama.on("touchmove", () => this.onEventMove());
     myPanorama.on("mousewheel", () => this.onEventWheel());
     myPanorama.on("touchstart", () => this.onEventDown());
     myPanorama.on("mousedown", () => this.onEventDown());
+    myPanorama.on("loadscene", () => this.setState({ loading: true }));
     myPanorama.on("onprogress", (percent, timeLoaded) => {
       if (this.props.onProgress) {
         this.props.onProgress(percent, timeLoaded);
       }
     });
-    myPanorama.on("loadscene", () => this.setState({ loading: true }));
   }
 
   componentDidUpdate(pp) {
@@ -54,6 +54,7 @@ class MetaTour extends React.PureComponent {
 
   componentWillUnmount() {
     myPanorama.destroy();
+    myPanorama.off();
   }
 
   mappingScene() {
@@ -133,12 +134,10 @@ class MetaTour extends React.PureComponent {
     const sceneObject = this.mappingScene();
     myPanorama = pannellum.viewer(this.state.container, {
       default: {
-        customControls: true,
         type: "equirectangular",
         draggableHotSpot: this.props.draggable,
         sceneFadeDuration: this.props.fadeDuration,
         orientationOnByDefault: utils.isMobileOrIOS,
-        showFullscreenCtrl: this.props.fullscreenCtrl,
         firstScene: this.props.firstScene || Object.keys(sceneObject)[0],
       },
       scenes: sceneObject,
@@ -164,6 +163,11 @@ class MetaTour extends React.PureComponent {
       const id_room = myPanorama.getScene();
       this.props.loadDone(id_room);
     }
+  }
+
+  onError(errorMessage) {
+    console.log(errorMessage);
+    this.props.onError && this.props.onError(errorMessage);
   }
 
   onEventWheel() {
@@ -232,7 +236,8 @@ class MetaTour extends React.PureComponent {
   }
 
   static toggleFullscreen() {
-    myPanorama.toggleFullscreen();
+    const fullscreenActive = myPanorama.toggleFullscreen();
+    return fullscreenActive;
   }
 
   static startOrientation() {
