@@ -16,13 +16,14 @@ class MetaMap extends PureComponent {
 
   componentDidMount() {
     this.renderMap();
-    myMetaMap.on("draggable", console.log);
+    this.setState({ isOrienSupported: MetaTour.isOrientationSupported() });
   }
 
   componentDidUpdate() {}
 
   componentWillUnmount() {
     myMetaMap.destroy();
+    myMetaMap.off();
   }
 
   renderMap() {
@@ -34,8 +35,8 @@ class MetaMap extends PureComponent {
         {
           _id: "1",
           id_room: "scene1",
-          top: 36,
-          left: 220,
+          top: 60,
+          left: 205,
           text: "Tooltip",
           clickHandlerFunc: this.clickHandler,
           clickHandlerArgs: "scene1",
@@ -43,14 +44,42 @@ class MetaMap extends PureComponent {
         {
           _id: "2",
           id_room: "scene2",
-          top: 50,
-          left: 100,
+          top: 144,
+          left: 115,
+          text: "Tooltip",
+          clickHandlerFunc: this.clickHandler,
+          clickHandlerArgs: "scene2",
+        },
+        {
+          _id: "3",
+          id_room: "scene3",
+          top: 80,
+          left: 39,
+          text: "Tooltip",
+          clickHandlerFunc: this.clickHandler,
+          clickHandlerArgs: "scene2",
+        },
+        {
+          _id: "4",
+          id_room: "scene4",
+          top: 23,
+          left: 107,
+          text: "Tooltip",
+          clickHandlerFunc: this.clickHandler,
+          clickHandlerArgs: "scene2",
+        },
+        {
+          _id: "5",
+          id_room: "scene5",
+          top: 124,
+          left: 200,
           text: "Tooltip",
           clickHandlerFunc: this.clickHandler,
           clickHandlerArgs: "scene2",
         },
       ],
     });
+    myMetaMap.on("draggable", console.log);
   }
 
   clickHandler(_, values) {
@@ -58,8 +87,10 @@ class MetaMap extends PureComponent {
   }
 
   render() {
-    const { container } = this.state;
-    return <div id={container}></div>;
+    const { style } = this.props;
+    const { container, isOrienSupported } = this.state;
+
+    return <div id={container} style={style}></div>;
   }
 }
 

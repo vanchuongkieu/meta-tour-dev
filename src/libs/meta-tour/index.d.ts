@@ -66,6 +66,10 @@ export interface CompassPropsType {
   onClick?: Function;
 }
 
+export interface MetaMapPropsType {
+  style?: any;
+}
+
 export type ViewerPropsType = ReturnType<typeof pannellum.viewer>;
 
 function Scene(props: MetaTourScenePropsType): JSX.Element;
@@ -86,11 +90,11 @@ function stopOrientation(): void;
 function toggleFullscreen(): boolean;
 function isOrientationActive(): boolean;
 function isOrientationSupported(): boolean;
-function MetaMap(): JSX.Element;
+function MetaMap(props: MetaMapPropsType): JSX.Element;
 function MetaTour(props: MetaTourPropsType): JSX.Element;
 
 namespace MetaTour {
-  export { Scene, Compass };
+  export { Scene, Compass, MetaMap };
 }
 
 export {

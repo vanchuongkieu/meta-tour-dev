@@ -172,8 +172,8 @@ export default (function () {
     }
 
     function movePointer(pt, event) {
-      var posY = event.clientY - container.parentNode.offsetTop - 10;
-      var posX = event.clientX - container.parentNode.offsetLeft - 10;
+      var posY = event.clientY - container.offsetTop - 10;
+      var posX = event.clientX - container.offsetLeft - 10;
       pt.top = posY >= 0 ? posY : 0;
       pt.left = posX >= 0 ? posX : 0;
       onDestroy();
@@ -186,7 +186,9 @@ export default (function () {
     }
 
     function onDocumentMouseUp() {
-      fireEvent("draggable", draggingPointer);
+      if (draggingPointer) {
+        fireEvent("draggable", draggingPointer);
+      }
       draggingPointer = null;
     }
 

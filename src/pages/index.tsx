@@ -4,7 +4,6 @@ import MetaTour, {
   MetaMap,
   zoomOut,
   Compass,
-  loadScene,
   toggleFullscreen,
   MetaTourScenePropsType,
   startOrientation,
@@ -84,6 +83,78 @@ const panorams: MetaTourScenePropsType[] = [
         transform: {
           scale: 1.4,
         },
+        id_room: "scene3",
+        animation: "pulse",
+      },
+    ],
+  },
+  {
+    _id: "scene3",
+    pitch: 2,
+    yaw: -7.6,
+    hfov: 120,
+    compass: true,
+    image:
+      "https://res.cloudinary.com/lavana/image/upload/v1657586907/panoramas/25_6_2022_fpoly_1_-_Panorama_4_-_Panorama_jtzttr.jpg",
+    hotSpots: [
+      {
+        _id: "hs5",
+        pitch: -6.4,
+        yaw: -7.6,
+        icon: "location-dot",
+        type: "visit",
+        tooltip: "Art Museum Drive",
+        transform: {
+          scale: 1.4,
+        },
+        id_room: "scene4",
+        animation: "pulse",
+      },
+    ],
+  },
+  {
+    _id: "scene4",
+    pitch: 2,
+    yaw: -7.6,
+    hfov: 120,
+    compass: true,
+    image:
+      "https://res.cloudinary.com/lavana/image/upload/v1657586905/panoramas/25_6_2022_fpoly_1_-_Panorama_2_-_Panorama_nwipx4.jpg",
+    hotSpots: [
+      {
+        _id: "hs6",
+        pitch: -6.4,
+        yaw: -7.6,
+        icon: "location-dot",
+        type: "visit",
+        tooltip: "Art Museum Drive",
+        transform: {
+          scale: 1.4,
+        },
+        id_room: "scene5",
+        animation: "pulse",
+      },
+    ],
+  },
+  {
+    _id: "scene5",
+    pitch: 2,
+    yaw: -7.6,
+    hfov: 120,
+    compass: true,
+    image:
+      "https://res.cloudinary.com/lavana/image/upload/v1657586907/panoramas/25_6_2022_fpoly_1_-_Panorama_7_-_Panorama_u1dwpp.jpg",
+    hotSpots: [
+      {
+        _id: "hs7",
+        pitch: -6.4,
+        yaw: -7.6,
+        icon: "location-dot",
+        type: "visit",
+        tooltip: "Art Museum Drive",
+        transform: {
+          scale: 1.4,
+        },
         id_room: "scene1",
         animation: "pulse",
       },
@@ -117,7 +188,11 @@ const Home: NextPage = () => {
   };
 
   return (
-    <div>
+    <div
+      style={{
+        position: "relative",
+      }}
+    >
       <MetaTour
         onError={console.log}
         loadDone={setIdRoom}
@@ -128,13 +203,32 @@ const Home: NextPage = () => {
           <Scene {...panoram} key={panoram._id} />
         ))}
       </MetaTour>
-      <div style={{ opacity: isShowMap ? 1 : 0 }}>
-        <MetaMap />
-      </div>
-      <div style={{ margin: 10 }}>
+      <MetaMap style={{ opacity: isShowMap && idRoom ? 1 : 0 }} />
+
+      <div
+        style={{
+          position: "absolute",
+          right: 10,
+          bottom: 10,
+          width: "auto",
+        }}
+      >
         <Compass room={idRoom} onClick={() => setOrientation(false)} />
       </div>
-      <div style={{ position: "absolute", top: 50, left: 0, zIndex: 12 }}>
+      <div
+        style={{
+          position: "absolute",
+          top: 5,
+          right: 10,
+          zIndex: 12,
+          display: "flex",
+          opacity: idRoom ? 1 : 0,
+          transition: "all .5s ease-in",
+        }}
+      >
+        <button onClick={zoomIn}>Zoom In</button>
+        <button onClick={zoomOut}>Zoom Out</button>
+        <button onClick={() => setShowMap(!isShowMap)}>Map</button>
         {isOrienSupported ? (
           <button onClick={handleOrientation}>
             {isOrientation ? "STOP" : "START"}
@@ -142,14 +236,6 @@ const Home: NextPage = () => {
         ) : (
           <button onClick={toggleFullscreen}>Fullscreen</button>
         )}
-        <br />
-        <button onClick={() => loadScene("scene1")}>Room 1</button>
-        <button onClick={() => loadScene("scene2")}>Room 2</button>
-        <br />
-        <button onClick={zoomIn}>Zoom In</button>
-        <button onClick={zoomOut}>Zoom Out</button>
-        <br />
-        <button onClick={() => setShowMap(!isShowMap)}>Map</button>
       </div>
     </div>
     // <div>

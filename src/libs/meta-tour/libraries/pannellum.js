@@ -2327,7 +2327,6 @@ export default (function (window, document, undefined) {
         .join("<br>"); // Allow line breaks
     }
     function sanitizeURL(url) {
-      console.log(url);
       if (url.trim().toLowerCase().indexOf("javascript:") === 0) {
         return "about:blank";
       }
